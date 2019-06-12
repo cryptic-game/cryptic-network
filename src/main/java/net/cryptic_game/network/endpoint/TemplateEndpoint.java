@@ -1,4 +1,4 @@
-package net.cryptic_game.template.endpoint;
+package net.cryptic_game.network.endpoint;
 
 import java.util.UUID;
 

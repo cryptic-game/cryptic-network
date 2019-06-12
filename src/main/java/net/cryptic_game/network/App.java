@@ -1,14 +1,14 @@
-package net.cryptic_game.template;
+package net.cryptic_game.network;
 
 import org.apache.log4j.BasicConfigurator;
 
 import net.cryptic_game.microservice.MicroService;
-import net.cryptic_game.template.endpoint.TemplateEndpoint;
+import net.cryptic_game.network.endpoint.TemplateEndpoint;
 
 public class App extends MicroService {
 
 	public App() {
-		super("template");
+		super("network");
 
 		addUserEndpoint(new TemplateEndpoint());
 	}
@@ -17,7 +17,7 @@ public class App extends MicroService {
 		BasicConfigurator.configure();
 
 		App app = new App();
-
+		
 		app.start();
 	}
 
