@@ -1,4 +1,4 @@
-package net.cryptic_game.network.model;
+package net.cryptic_game.microservice.network.model;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
