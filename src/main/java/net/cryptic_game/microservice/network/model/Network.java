@@ -97,6 +97,7 @@ public class Network extends Model {
 						UUID.fromString(rs.getString("owner")), false, rs.getString("name")));
 			}
 		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 
 		return publicNetworks;

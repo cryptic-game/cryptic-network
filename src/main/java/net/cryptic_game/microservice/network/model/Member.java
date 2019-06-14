@@ -3,8 +3,12 @@ package net.cryptic_game.microservice.network.model;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
+import org.json.simple.JSONObject;
 
 import net.cryptic_game.microservice.model.Model;
 
@@ -34,6 +38,16 @@ public class Member extends Model {
 
 	public UUID getNetwork() {
 		return network;
+	}
+
+	public JSONObject serialize() {
+		Map<String, Object> jsonMap = new HashMap<String, Object>();
+
+		jsonMap.put("uuid", getUUID().toString());
+		jsonMap.put("network", getNetwork().toString());
+		jsonMap.put("device", getDevice().toString());
+
+		return new JSONObject(jsonMap);
 	}
 
 	public static List<Network> getNetworks(UUID device) {
