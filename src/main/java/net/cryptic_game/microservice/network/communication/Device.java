@@ -15,7 +15,7 @@ public class Device {
 
 		jsonMap.put("device_uuid", device.toString());
 
-		JSONObject result = MicroService.instance.contactMicroservice("device", new String[] { "owner" },
+		JSONObject result = MicroService.getInstance().contactMicroservice("device", new String[] { "owner" },
 				new JSONObject(jsonMap));
 
 		return result.containsKey("owner") && UUID.fromString((String) result.get("owner")).equals(user);
@@ -27,7 +27,7 @@ public class Device {
 		jsonMap.put("device_uuid", device.toString());
 		jsonMap.put("user_uuid", user.toString());
 
-		JSONObject result = MicroService.instance.contactMicroservice("service", new String[] { "check_part_owner" },
+		JSONObject result = MicroService.getInstance().contactMicroservice("service", new String[] { "check_part_owner" },
 				new JSONObject(jsonMap));
 
 		return result.containsKey("ok") && (boolean) result.get("ok");
