@@ -10,6 +10,7 @@ import org.json.simple.JSONObject;
 
 import net.cryptic_game.microservice.endpoint.MicroserviceEndpoint;
 import net.cryptic_game.microservice.endpoint.UserEndpoint;
+import net.cryptic_game.microservice.network.communication.Device;
 import net.cryptic_game.microservice.network.model.Invitation;
 import net.cryptic_game.microservice.network.model.Member;
 import net.cryptic_game.microservice.network.model.Network;
@@ -57,23 +58,34 @@ public class NetworkEndpoint {
 		return new JSONObject(jsonMap);
 	}
 
-	@UserEndpoint(path = { "create" }, keys = { "name", "hidden" }, types = { String.class, Boolean.class })
+	@UserEndpoint(path = { "create" }, keys = { "device", "name", "hidden" }, types = { String.class, String.class,
+			Boolean.class })
 	public static JSONObject create(JSONObject data, UUID user) {
+		UUID device = UUID.fromString((String) data.get("device"));
 		String name = (String) data.get("name");
 		boolean hidden = (boolean) data.get("hidden");
 
-		int count = Network.getCountOfNetworksByUser(user);
+		Map<String, Object> jsonMap = new HashMap<String, Object>();
+		
+		if (Device.checkPermissions(device, user)) {
 
-		if (count >= 3) { // maximum 3 networks per user -> can change to device
-			Map<String, Object> jsonMap = new HashMap<String, Object>();
+			int count = Network.getCountOfNetworksByDevice(device);
 
-			jsonMap.put("error", "maximum_networks_reached");
+			if (count >= 3) { // maximum 3 networks per device
+
+				jsonMap.put("error", "maximum_networks_reached");
+
+				return new JSONObject(jsonMap);
+			}
+			Network network = Network.create(device, name, hidden);
+
+			return network.serialize();
+		} else {
+			jsonMap.put("error", "no_permissions");
+			jsonMap.put("result", false);
 
 			return new JSONObject(jsonMap);
 		}
-		Network network = Network.create(user, name, hidden);
-
-		return network.serialize();
 	}
 
 	@UserEndpoint(path = { "delete" }, keys = { "uuid" }, types = { String.class })
@@ -81,10 +93,11 @@ public class NetworkEndpoint {
 		UUID uuid = UUID.fromString((String) data.get("uuid"));
 
 		Network network = Network.get(uuid);
-
+		
 		HashMap<String, Object> jsonMap = new HashMap<String, Object>();
 
-		if (network == null || !network.getOwner().equals(user)) {
+		
+		if (network == null || !Device.checkPermissions(network.getOwner(), user)) {
 			jsonMap.put("error", "network_not_found");
 			jsonMap.put("result", false);
 
@@ -107,7 +120,7 @@ public class NetworkEndpoint {
 
 		HashMap<String, Object> jsonMap = new HashMap<String, Object>();
 
-		if (network == null || !network.getOwner().equals(user)) {
+		if (network == null || !Device.checkPermissions(network.getOwner(), user)) {
 			jsonMap.put("error", "network_not_found");
 			jsonMap.put("result", false);
 
@@ -135,11 +148,16 @@ public class NetworkEndpoint {
 			return new JSONObject(jsonMap);
 		}
 
-		// contact cryptic-device to proof that this user is owner of that device
+		if (Device.checkPermissions(device, user)) {
+			Invitation invitation = Invitation.request(device, network.getUUID());
 
-		Invitation invitation = Invitation.request(device, network.getUUID());
+			return invitation.serialize();
+		} else {
+			jsonMap.put("error", "no_permissions");
+			jsonMap.put("result", false);
 
-		return invitation.serialize();
+			return new JSONObject(jsonMap);
+		}
 	}
 
 	@UserEndpoint(path = { "accept" }, keys = { "uuid" }, types = { String.class })
@@ -157,11 +175,20 @@ public class NetworkEndpoint {
 			return new JSONObject(jsonMap);
 		}
 
-		// contact cryptic-device to proof that this user is owner of that device
 		if (invitation.isRequest()) {
-			// owner
+			if (!Device.checkPermissions(Network.get(invitation.getNetwork()).getOwner(), user)) {
+				jsonMap.put("error", "no_permissions");
+				jsonMap.put("result", false);
+
+				return new JSONObject(jsonMap);
+			}
 		} else {
-			// user
+			if (!Device.checkPermissions(invitation.getDevice(), user)) {
+				jsonMap.put("error", "no_permissions");
+				jsonMap.put("result", false);
+
+				return new JSONObject(jsonMap);
+			}
 		}
 
 		invitation.accept();
@@ -186,13 +213,21 @@ public class NetworkEndpoint {
 			return new JSONObject(jsonMap);
 		}
 
-		// contact cryptic-device to proof that this user is owner of that device
 		if (invitation.isRequest()) {
-			// owner
-		} else {
-			// user
-		}
+			if (!Device.checkPermissions(Network.get(invitation.getNetwork()).getOwner(), user)) {
+				jsonMap.put("error", "no_permissions");
+				jsonMap.put("result", false);
 
+				return new JSONObject(jsonMap);
+			}
+		} else {
+			if (!Device.checkPermissions(invitation.getDevice(), user)) {
+				jsonMap.put("error", "no_permissions");
+				jsonMap.put("result", false);
+
+				return new JSONObject(jsonMap);
+			}
+		}
 		invitation.deny();
 
 		jsonMap.put("result", true);
@@ -209,14 +244,13 @@ public class NetworkEndpoint {
 
 		HashMap<String, Object> jsonMap = new HashMap<String, Object>();
 
-		if (network == null || !network.getOwner().equals(user)) {
+		if (network == null || !Device.checkPermissions(network.getOwner(), user)) {
 			jsonMap.put("error", "invitation_not_found");
 			jsonMap.put("result", false);
 
 			return new JSONObject(jsonMap);
 		}
 
-		// contact cryptic-device to proof that this user is owner of that device
 		for (Member member : Member.getMembers(network.getUUID())) {
 			if (member.getDevice().equals(device)) {
 				member.delete();

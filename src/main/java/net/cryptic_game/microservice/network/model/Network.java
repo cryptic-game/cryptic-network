@@ -80,7 +80,6 @@ public class Network extends Model {
 		return null;
 	}
 
-	
 	/*
 	 * 
 	 * PAY ATTENTION ON BIG QUERIES
@@ -102,18 +101,9 @@ public class Network extends Model {
 
 		return publicNetworks;
 	}
-	
-	public static int getCountOfNetworksByUser(UUID user) {
-		ResultSet rs = db.getResult("SELECT count(uuid) FROM `" + tablename + "` WHERE `owner`=?", user.toString());
-		
-		try {
-			if(rs.next()) {
-				return rs.getInt(0);
-			}
-		} catch (SQLException e) {
-		}
-		
-		return 0;
+
+	public static int getCountOfNetworksByDevice(UUID device) {
+		return Member.getNetworks(device).size();
 	}
 
 	public static Network create(UUID owner, String name, boolean hidden) {

@@ -53,7 +53,7 @@ public class Member extends Model {
 	public static List<Network> getNetworks(UUID device) {
 		List<Network> list = new ArrayList<Network>();
 
-		ResultSet rs = db.getResult("SELECT `network` FROM `" + tablename + "` WHERE `device`=?", device.toString());
+		ResultSet rs = db.getResult("SELECT `network` FROM `" + tablename + "` WHERE `device`=? OR `owner`=?", device.toString(), device.toString());
 
 		try {
 			while (rs.next()) {
