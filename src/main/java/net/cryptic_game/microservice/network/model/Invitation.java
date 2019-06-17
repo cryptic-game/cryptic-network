@@ -1,10 +1,14 @@
-package net.cryptic_game.network.model;
+package net.cryptic_game.microservice.network.model;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
+import org.json.simple.JSONObject;
 
 import net.cryptic_game.microservice.model.Model;
 
@@ -48,12 +52,23 @@ public class Invitation extends Model {
 
 	public void accept() {
 		Network network = Network.get(this.network);
-		
-		if(network != null) {
+
+		if (network != null) {
 			network.addMemeber(this.device);
 		}
-		
+
 		this.delete();
+	}
+
+	public JSONObject serialize() {
+		Map<String, Object> jsonMap = new HashMap<String, Object>();
+
+		jsonMap.put("uuid", getUUID().toString());
+		jsonMap.put("network", getNetwork().toString());
+		jsonMap.put("device", getDevice().toString());
+		jsonMap.put("request", isRequest());
+
+		return new JSONObject(jsonMap);
 	}
 
 	public static List<Invitation> getInvitations(UUID device) {
@@ -73,6 +88,21 @@ public class Invitation extends Model {
 		return list;
 	}
 
+	public static Invitation getInvitation(UUID uuid) {
+		ResultSet rs = db.getResult("SELECT `device`, `network`, `request` FROM `" + tablename + "` WHERE `uuid`=?",
+				uuid.toString());
+
+		try {
+			if (rs.next()) {
+				return new Invitation(uuid, UUID.fromString(rs.getString("device")),
+						UUID.fromString(rs.getString("network")), rs.getBoolean("request"));
+			}
+		} catch (SQLException e) {
+		}
+
+		return null;
+	}
+
 	public static Invitation request(UUID device, UUID network) {
 		return create(device, network, true);
 	}
@@ -84,11 +114,9 @@ public class Invitation extends Model {
 	private static Invitation create(UUID device, UUID network, boolean request) {
 		UUID uuid = UUID.randomUUID();
 
-		db.update(
-				"INSERT INTO `" + tablename + "` (`uuid`, `device`, `network`, `request`) VALUES (?, ?, ?, ?)",
+		db.update("INSERT INTO `" + tablename + "` (`uuid`, `device`, `network`, `request`) VALUES (?, ?, ?, ?)",
 				uuid.toString(), device.toString(), network.toString(), request);
 
 		return new Invitation(uuid, device, network, request);
 	}
-
 }

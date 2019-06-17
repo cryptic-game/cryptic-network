@@ -5,7 +5,7 @@
 
 	<groupId>net.cryptic_game.microservice</groupId>
 	<artifactId>network</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>cryptic-game-network</name>
@@ -20,7 +20,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>net.cryptic_game.network.App</mainClass>
+							<mainClass>net.cryptic_game.microservice.network.App</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
@@ -55,8 +55,8 @@
 
 	<repositories>
 		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
 

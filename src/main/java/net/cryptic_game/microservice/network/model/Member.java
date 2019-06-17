@@ -1,10 +1,14 @@
-package net.cryptic_game.network.model;
+package net.cryptic_game.microservice.network.model;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
+import org.json.simple.JSONObject;
 
 import net.cryptic_game.microservice.model.Model;
 
@@ -36,10 +40,20 @@ public class Member extends Model {
 		return network;
 	}
 
+	public JSONObject serialize() {
+		Map<String, Object> jsonMap = new HashMap<String, Object>();
+
+		jsonMap.put("uuid", getUUID().toString());
+		jsonMap.put("network", getNetwork().toString());
+		jsonMap.put("device", getDevice().toString());
+
+		return new JSONObject(jsonMap);
+	}
+
 	public static List<Network> getNetworks(UUID device) {
 		List<Network> list = new ArrayList<Network>();
 
-		ResultSet rs = db.getResult("SELECT `network` FROM `" + tablename + "` WHERE `device`=?", device.toString());
+		ResultSet rs = db.getResult("SELECT `network` FROM `" + tablename + "` WHERE `device`=? OR `owner`=?", device.toString(), device.toString());
 
 		try {
 			while (rs.next()) {
