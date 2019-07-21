@@ -41,7 +41,7 @@ public class Member extends Model {
 	}
 
 	public JSONObject serialize() {
-		Map<String, Object> jsonMap = new HashMap<String, Object>();
+		Map<String, Object> jsonMap = new HashMap<>();
 
 		jsonMap.put("uuid", getUUID().toString());
 		jsonMap.put("network", getNetwork().toString());
@@ -51,9 +51,9 @@ public class Member extends Model {
 	}
 
 	public static List<Network> getNetworks(UUID device) {
-		List<Network> list = new ArrayList<Network>();
+		List<Network> list = new ArrayList<>();
 
-		ResultSet rs = db.getResult("SELECT `network` FROM `" + tablename + "` WHERE `device`=? OR `owner`=?", device.toString(), device.toString());
+		ResultSet rs = db.getResult("SELECT `network` FROM `" + tablename + "` WHERE `device`=?", device.toString());
 
 		try {
 			while (rs.next()) {
@@ -66,7 +66,7 @@ public class Member extends Model {
 	}
 
 	public static List<Member> getMembers(UUID network) {
-		List<Member> list = new ArrayList<Member>();
+		List<Member> list = new ArrayList<>();
 
 		ResultSet rs = db.getResult("SELECT `uuid`, `device` FROM `" + tablename + "` WHERE `network`=?",
 				network.toString());
@@ -83,7 +83,7 @@ public class Member extends Model {
 		return list;
 	}
 
-	protected static Member create(UUID device, UUID network) {
+	private static Member create(UUID device, UUID network) {
 		UUID uuid = UUID.randomUUID();
 
 		db.update("INSERT INTO `" + tablename + "` (`uuid`, `device`, `network`) VALUES (?, ?, ?)", uuid.toString(),
