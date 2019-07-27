@@ -83,7 +83,7 @@ public class Member extends Model {
 		return list;
 	}
 
-	private static Member create(UUID device, UUID network) {
+	public static Member create(UUID device, UUID network) {
 		UUID uuid = UUID.randomUUID();
 
 		db.update("INSERT INTO `" + tablename + "` (`uuid`, `device`, `network`) VALUES (?, ?, ?)", uuid.toString(),
