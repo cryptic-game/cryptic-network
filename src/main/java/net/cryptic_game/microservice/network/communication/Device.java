@@ -1,34 +1,23 @@
 package net.cryptic_game.microservice.network.communication;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
+import net.cryptic_game.microservice.MicroService;
+import net.cryptic_game.microservice.utils.JSONUtils;
 import org.json.simple.JSONObject;
 
-import net.cryptic_game.microservice.MicroService;
+import java.util.UUID;
 
 public class Device {
 
 	private static boolean isOwner(UUID device, UUID user) {
-		Map<String, Object> jsonMap = new HashMap<String, Object>();
-
-		jsonMap.put("device_uuid", device.toString());
-
 		JSONObject result = MicroService.getInstance().contactMicroservice("device", new String[] { "owner" },
-				new JSONObject(jsonMap));
+				JSONUtils.simple("device_uuid", device.toString()));
 
 		return result.containsKey("owner") && UUID.fromString((String) result.get("owner")).equals(user);
 	}
 
 	private static boolean isPartOwner(UUID device, UUID user) {
-		Map<String, Object> jsonMap = new HashMap<String, Object>();
-
-		jsonMap.put("device_uuid", device.toString());
-		jsonMap.put("user_uuid", user.toString());
-
 		JSONObject result = MicroService.getInstance().contactMicroservice("service", new String[] { "check_part_owner" },
-				new JSONObject(jsonMap));
+				JSONUtils.json().add("device_uuid", device.toString()).add("user_uuid", user.toString()).build());
 
 		return result.containsKey("ok") && (boolean) result.get("ok");
 	}

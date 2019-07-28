@@ -62,6 +62,15 @@ public class Member extends Model {
 		} catch (SQLException e) {
 		}
 
+		ResultSet rs2 = db.getResult("SELECT `uuid` FROM `network` WHERE `owner`=?", device.toString());
+
+		try {
+			while (rs.next()) {
+				list.add(Network.get(UUID.fromString(rs.getString("uuid"))));
+			}
+		} catch (SQLException e) {
+		}
+
 		return list;
 	}
 
@@ -83,7 +92,7 @@ public class Member extends Model {
 		return list;
 	}
 
-	private static Member create(UUID device, UUID network) {
+	public static Member create(UUID device, UUID network) {
 		UUID uuid = UUID.randomUUID();
 
 		db.update("INSERT INTO `" + tablename + "` (`uuid`, `device`, `network`) VALUES (?, ?, ?)", uuid.toString(),
