@@ -177,10 +177,9 @@ public class NetworkEndpoint {
 		return simple("result", true);
 	}
 
-	@UserEndpoint(path = {"invitation"}, keys = {"device", "request"}, types = {String.class, Boolean.class})
-	public static JSONObject invitation(JSONObject data, UUID user) {
+	@UserEndpoint(path = { "invitations" }, keys = { "device" }, types = { String.class })
+	public static JSONObject invitations(JSONObject data, UUID user) {
 		UUID device = UUID.fromString((String) data.get("device"));
-		Boolean request = (Boolean) data.get("request");
 
 		if(!Device.checkPermissions(device, user)) {
 			return JSONUtils.error("no_permissions");
@@ -188,18 +187,17 @@ public class NetworkEndpoint {
 
 		List<JSONObject> invitations = new ArrayList<>();
 
-		for(Invitation invitation : Invitation.getInvitationsOfDevice(device, request)) {
+		for(Invitation invitation : Invitation.getInvitationsOfDevice(device, false)) {
 			invitations.add(invitation.serialize());
 		}
 
 		return JSONUtils.simple("invitations", invitations);
 	}
 
-	@UserEndpoint(path = {"requests"}, keys = {"uuid", "device", "request"}, types = {String.class, String.class, Boolean.class})
+	@UserEndpoint(path = { "requests" }, keys = { "uuid", "device" }, types = { String.class, String.class })
 	public static JSONObject requests(JSONObject data, UUID user) {
 		UUID uuid = UUID.fromString((String) data.get("uuid"));
 		UUID device = UUID.fromString((String) data.get("device"));
-		Boolean request = (Boolean) data.get("request");
 
 		Network network = Network.get(uuid);
 
@@ -209,11 +207,11 @@ public class NetworkEndpoint {
 
 		List<JSONObject> invitations = new ArrayList<>();
 
-		for(Invitation invitation : Invitation.getInvitationsOfNetwork(uuid, request)) {
+		for(Invitation invitation : Invitation.getInvitationsOfNetwork(uuid, true)) {
 			invitations.add(invitation.serialize());
 		}
 
-		return JSONUtils.simple("invitations", invitations);
+		return JSONUtils.simple("requests", invitations);
 	}
 
 	@UserEndpoint(path = { "kick" }, keys = { "uuid", "device" }, types = { String.class, String.class })
@@ -238,7 +236,7 @@ public class NetworkEndpoint {
 		return simple("result", false);
 	}
 
-	@UserEndpoint(path= {"leave"}, keys = {"uuid", "device"}, types = {String.class, String.class})
+	@UserEndpoint(path = {"leave"}, keys = {"uuid", "device"}, types = {String.class, String.class})
 	public static JSONObject leave(JSONObject data, UUID user) {
 		UUID uuid = UUID.fromString((String) data.get("uuid"));
 		UUID device = UUID.fromString((String) data.get("device"));
