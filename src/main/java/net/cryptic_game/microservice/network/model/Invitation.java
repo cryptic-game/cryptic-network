@@ -71,16 +71,16 @@ public class Invitation extends Model {
 		return new JSONObject(jsonMap);
 	}
 
-	public static List<Invitation> getInvitations(UUID device) {
-		List<Invitation> list = new ArrayList<Invitation>();
+	public static List<Invitation> getInvitationsOfDevice(UUID device, boolean request) {
+		List<Invitation> list = new ArrayList<>();
 
-		ResultSet rs = db.getResult("SELECT `uuid`, `network`, `request` FROM `" + tablename + "` WHERE `device`=?",
-				device.toString());
+		ResultSet rs = db.getResult("SELECT `uuid`, `network` FROM `" + tablename + "` WHERE `device`=? AND `request`=?",
+				device.toString(), request);
 
 		try {
 			while (rs.next()) {
 				list.add(new Invitation(UUID.fromString(rs.getString("uuid")), device,
-						UUID.fromString(rs.getString("network")), rs.getBoolean("request")));
+						UUID.fromString(rs.getString("network")), request));
 			}
 		} catch (SQLException e) {
 		}
@@ -88,6 +88,22 @@ public class Invitation extends Model {
 		return list;
 	}
 
+	public static List<Invitation> getInvitationsOfNetwork(UUID network, boolean request) {
+		List<Invitation> list = new ArrayList<>();
+
+		ResultSet rs = db.getResult("SELECT `uuid`, `device` FROM `" + tablename + "` WHERE `network`=? AND `request`=?",
+				network.toString(), request);
+
+		try {
+			while (rs.next()) {
+				list.add(new Invitation(UUID.fromString(rs.getString("uuid")), UUID.fromString(rs.getString("device")),
+						network, request));
+			}
+		} catch (SQLException e) {
+		}
+
+		return list;
+	}
 	public static Invitation getInvitation(UUID uuid) {
 		ResultSet rs = db.getResult("SELECT `device`, `network`, `request` FROM `" + tablename + "` WHERE `uuid`=?",
 				uuid.toString());
