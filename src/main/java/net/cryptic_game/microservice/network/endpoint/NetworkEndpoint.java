@@ -19,14 +19,25 @@ public class NetworkEndpoint {
 	@UserEndpoint(path = { "name" }, keys = { "name" }, types = { String.class })
 	public static JSONObject getByName(JSONObject data, UUID user) {
 	    String name = (String) data.get("name");
-		return Network.getNetworkByName(name).serialize();
+
+	    Network network =  Network.getNetworkByName(name);
+	    if(network == null) {
+	    	error("network_not_found");
+		}
+
+		return network.serialize();
 	}
 
 	@UserEndpoint(path = { "get" }, keys = { "uuid" }, types = { String.class })
 	public static JSONObject getByUUID(JSONObject data, UUID user) {
 		UUID uuid = UUID.fromString((String) data.get("uuid"));
 
-		return Network.get(uuid).serialize();
+		Network network =  Network.get(uuid);
+		if(network == null) {
+			error("network_not_found");
+		}
+
+		return network.serialize();
 	}
 
 	@UserEndpoint(path = { "public" }, keys = {}, types = {})
