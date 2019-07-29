@@ -102,6 +102,21 @@ public class Network extends Model {
 		return publicNetworks;
 	}
 
+	public static List<Network> getNetworks(UUID device) {
+		List<Network> list = new ArrayList<>();
+
+		ResultSet rs = db.getResult("SELECT `uuid` FROM `" + tablename + "` WHERE `owner`=?", device.toString());
+
+		try {
+			while (rs.next()) {
+				list.add(Network.get(UUID.fromString(rs.getString("uuid"))));
+			}
+		} catch (SQLException e) {
+		}
+
+		return list;
+	}
+
 	public static int getCountOfNetworksByDevice(UUID device) {
 		return Member.getNetworks(device).size();
 	}
@@ -113,6 +128,23 @@ public class Network extends Model {
 				uuid.toString(), owner.toString(), name, hidden);
 
 		return new Network(uuid, owner, hidden, name);
+	}
+
+	public static Network getNetworkByName(String name) {
+		ResultSet rs = db.getResult("SELECT `uuid` FROM `" + tablename + "` WHERE `name`=?", name);
+
+		try {
+			while (rs.next()) {
+				return Network.get(UUID.fromString(rs.getString("uuid")));
+			}
+		} catch (SQLException e) {
+		}
+
+		return null;
+	}
+
+	public static boolean checkName(String name) {
+		return name.length() >= 5 && name.length() <= 20 && !name.contains(" ");
 	}
 
 }
