@@ -96,14 +96,13 @@ public class NetworkOwnerEndpoint {
         return simple("result", true);
     }
 
-    @UserEndpoint(path = { "requests" }, keys = { "uuid", "device" }, types = { String.class, String.class })
+    @UserEndpoint(path = { "requests" }, keys = { "uuid" }, types = { String.class })
     public static JSONObject requests(JSONObject data, UUID user) {
         UUID uuid = UUID.fromString((String) data.get("uuid"));
-        UUID device = UUID.fromString((String) data.get("device"));
 
         Network network = Network.get(uuid);
 
-        if(network == null || !Device.checkPermissions(device, user) || !Device.checkPermissions(network.getOwner(), user)) {
+        if(network == null || !Device.checkPermissions(network.getOwner(), user)) {
             return JSONUtils.error("no_permissions");
         }
 
