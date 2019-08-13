@@ -1,32 +1,30 @@
 package net.cryptic_game.microservice.network.model;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
+import net.cryptic_game.microservice.db.Database;
+import net.cryptic_game.microservice.model.Model;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.annotations.Type;
+import org.hibernate.criterion.Restrictions;
+import org.json.simple.JSONObject;
+
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.json.simple.JSONObject;
-
-import net.cryptic_game.microservice.model.Model;
-
+@Entity
+@Table(name = "network")
 public class Network extends Model {
 
+	@Type(type="uuid-char")
 	private UUID owner;
 	private boolean hidden;
 	private String name;
 
-	private static String tablename = "network";
-
-	static {
-		db.update("CREATE TABLE IF NOT EXISTS `" + tablename
-				+ "` (uuid VARCHAR(36) PRIMARY KEY, name TEXT, owner VARCHAR(36), hidden BOOLEAN);");
-	}
-
 	private Network(UUID uuid, UUID owner, boolean hidden, String name) {
-		super(tablename);
 		this.uuid = uuid;
 		this.owner = owner;
 		this.hidden = hidden;
@@ -46,8 +44,13 @@ public class Network extends Model {
 	}
 
 	public void update() {
-		db.update("UPDATE `" + tablename + "` SET `owner`=?, `hidden`=?, `name`=? WHERE `uuid`=?", owner.toString(),
-				hidden, name, uuid.toString());
+		Session session = Database.getInstance().openSession();
+		session.beginTransaction();
+
+		session.save(this);
+
+		session.getTransaction().commit();
+		session.close();
 	}
 
 	public Member addMemeber(UUID member) {
@@ -66,55 +69,37 @@ public class Network extends Model {
 	}
 
 	public static Network get(UUID uuid) {
-		ResultSet rs = db.getResult("SELECT `owner`, `name`, `hidden` FROM `" + tablename + "` WHERE `uuid`=?",
-				uuid.toString());
+		Session session = Database.getInstance().openSession();
+		session.beginTransaction();
 
-		try {
-			if (rs.next()) {
-				return new Network(uuid, UUID.fromString(rs.getString("owner")), rs.getBoolean("hidden"),
-						rs.getString("name"));
-			}
-		} catch (SQLException e) {
-		}
+		Network network = session.get(Network.class, uuid);
 
-		return null;
+		session.getTransaction().commit();
+		session.close();
+
+		return network;
 	}
 
-	/*
-	 * 
-	 * PAY ATTENTION ON BIG QUERIES
-	 * 
-	 */
 	public static List<Network> getPublicNetworks() {
-		List<Network> publicNetworks = new ArrayList<Network>();
+		Session session = Database.getInstance().openSession();
 
-		ResultSet rs = db.getResult("SELECT `uuid`, `owner`, `name` FROM `" + tablename + "` WHERE `hidden`=?", false);
+		Criteria crit = session.createCriteria(Network.class);
+		crit.add(Restrictions.eq("hidden", false));
+		List<Network> results = crit.list();
 
-		try {
-			while (rs.next()) {
-				publicNetworks.add(new Network(UUID.fromString(rs.getString("uuid")),
-						UUID.fromString(rs.getString("owner")), false, rs.getString("name")));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		return publicNetworks;
+		session.close();
+		return results;
 	}
 
 	public static List<Network> getNetworks(UUID device) {
-		List<Network> list = new ArrayList<>();
+		Session session = Database.getInstance().openSession();
 
-		ResultSet rs = db.getResult("SELECT `uuid` FROM `" + tablename + "` WHERE `owner`=?", device.toString());
+		Criteria crit = session.createCriteria(Network.class);
+		crit.add(Restrictions.eq("owner", device));
+		List<Network> results = crit.list();
 
-		try {
-			while (rs.next()) {
-				list.add(Network.get(UUID.fromString(rs.getString("uuid"))));
-			}
-		} catch (SQLException e) {
-		}
-
-		return list;
+		session.close();
+		return results;
 	}
 
 	public static int getCountOfNetworksByDevice(UUID device) {
@@ -123,24 +108,31 @@ public class Network extends Model {
 
 	public static Network create(UUID owner, String name, boolean hidden) {
 		UUID uuid = UUID.randomUUID();
+		Network network = new Network(uuid, owner, hidden, name);
 
-		db.update("INSERT INTO `" + tablename + "` (`uuid`, `owner`, `name`, `hidden`) VALUES (?, ?, ?, ?)",
-				uuid.toString(), owner.toString(), name, hidden);
+		Session session = Database.getInstance().openSession();
+		session.beginTransaction();
 
-		return new Network(uuid, owner, hidden, name);
+		session.save(network);
+
+		session.getTransaction().commit();
+		session.close();
+
+		return network;
 	}
 
 	public static Network getNetworkByName(String name) {
-		ResultSet rs = db.getResult("SELECT `uuid` FROM `" + tablename + "` WHERE `name`=?", name);
+		Session session = Database.getInstance().openSession();
 
-		try {
-			while (rs.next()) {
-				return Network.get(UUID.fromString(rs.getString("uuid")));
-			}
-		} catch (SQLException e) {
-		}
+		Criteria crit = session.createCriteria(Network.class);
+		crit.add(Restrictions.eq("name", name));
+		List<Network> results = crit.list();
 
-		return null;
+		session.close();
+
+		if(results.size() == 0) return null;
+
+		return results.get(0);
 	}
 
 	public static boolean checkName(String name) {

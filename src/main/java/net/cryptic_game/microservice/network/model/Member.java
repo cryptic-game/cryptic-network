@@ -8,25 +8,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import net.cryptic_game.microservice.db.Database;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.annotations.Type;
+import org.hibernate.criterion.Restrictions;
 import org.json.simple.JSONObject;
 
 import net.cryptic_game.microservice.model.Model;
 
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "network_member")
 public class Member extends Model {
 
+	@Type(type="uuid-char")
 	private UUID device;
+	@Type(type="uuid-char")
 	private UUID network;
 
 	private static String tablename = "network_member";
 
-	static {
-		db.update("CREATE TABLE IF NOT EXISTS `" + tablename
-				+ "` (uuid VARCHAR(36) PRIMARY KEY, device VARCHAR(36), network VARCHAR(36));");
-	}
-
 	private Member(UUID uuid, UUID device, UUID network) {
-		super(tablename);
-
 		this.uuid = uuid;
 		this.device = device;
 		this.network = network;
@@ -51,45 +56,39 @@ public class Member extends Model {
 	}
 
 	public static List<Network> getNetworks(UUID device) {
-		List<Network> list = new ArrayList<>();
+		Session session = Database.getInstance().openSession();
 
-		ResultSet rs = db.getResult("SELECT `network` FROM `" + tablename + "` WHERE `device`=?", device.toString());
+		Criteria crit = session.createCriteria(Member.class);
+		crit.add(Restrictions.eq("device", device));
+		List<Network> results = crit.list();
 
-		try {
-			while (rs.next()) {
-				list.add(Network.get(UUID.fromString(rs.getString("network"))));
-			}
-		} catch (SQLException e) {
-		}
-
-		return list;
+		session.close();
+		return results;
 	}
 
 	public static List<Member> getMembers(UUID network) {
-		List<Member> list = new ArrayList<>();
+		Session session = Database.getInstance().openSession();
 
-		ResultSet rs = db.getResult("SELECT `uuid`, `device` FROM `" + tablename + "` WHERE `network`=?",
-				network.toString());
+		Criteria crit = session.createCriteria(Member.class);
+		crit.add(Restrictions.eq("network", network));
+		List<Member> results = crit.list();
 
-		try {
-			while (rs.next()) {
-				list.add(new Member(UUID.fromString(rs.getString("uuid")), UUID.fromString(rs.getString("device")),
-						network));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		return list;
+		session.close();
+		return results;
 	}
 
 	public static Member create(UUID device, UUID network) {
 		UUID uuid = UUID.randomUUID();
+		Member member = new Member(uuid, device, network);
 
-		db.update("INSERT INTO `" + tablename + "` (`uuid`, `device`, `network`) VALUES (?, ?, ?)", uuid.toString(),
-				device.toString(), network.toString());
+		Session session = Database.getInstance().openSession();
+		session.beginTransaction();
 
-		return new Member(uuid, device, network);
+		session.save(member);
+
+		session.getTransaction().commit();
+		session.close();
+
+		return member;
 	}
-
 }
