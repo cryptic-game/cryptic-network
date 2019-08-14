@@ -139,4 +139,12 @@ public class Network extends Model {
 		return name.length() >= 5 && name.length() <= 20 && !name.contains(" ");
 	}
 
+	@Override
+	public void delete() {
+		super.delete();
+		List<Invitation> invitations = Invitation.getInvitationsOfNetwork(uuid, true);
+		invitations.addAll(Invitation.getInvitationsOfNetwork(uuid, false));
+
+		invitations.forEach(Model::delete);
+	}
 }
