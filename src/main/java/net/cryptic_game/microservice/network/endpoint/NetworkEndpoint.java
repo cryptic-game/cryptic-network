@@ -106,7 +106,8 @@ public class NetworkEndpoint {
 	public static JSONObject members(JSONObject data, UUID user) {
 		UUID uuid = UUID.fromString((String) data.get("uuid"));
 
-		if(Network.get(uuid) == null) {
+		Network network = Network.get(uuid);
+		if(network == null || !Device.checkPermissions(network.getOwner(), user)) {
 			return error("network_not_found");
 		}
 
