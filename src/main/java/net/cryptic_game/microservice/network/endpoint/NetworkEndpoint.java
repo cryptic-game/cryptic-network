@@ -22,7 +22,7 @@ public class NetworkEndpoint {
 
 	    Network network =  Network.getNetworkByName(name);
 	    if(network == null) {
-	    	error("network_not_found");
+	    	return error("network_not_found");
 		}
 
 		return network.serialize();
@@ -34,7 +34,7 @@ public class NetworkEndpoint {
 
 		Network network =  Network.get(uuid);
 		if(network == null) {
-			error("network_not_found");
+			return error("network_not_found");
 		}
 
 		return network.serialize();
@@ -99,6 +99,26 @@ public class NetworkEndpoint {
 		}
 
 		return simple("connected", false);
+	}
+
+
+	@MicroserviceEndpoint(path = { "members" }, keys = { "uuid" }, types = { String.class })
+	public static JSONObject members(JSONObject data, UUID user) {
+		UUID uuid = UUID.fromString((String) data.get("uuid"));
+
+		Network network = Network.get(uuid);
+		if(network == null || !Device.checkPermissions(network.getOwner(), user)) {
+			return error("network_not_found");
+		}
+
+		List<Member> members = Member.getMembers(uuid);
+		List<JSONObject> jsonMembers = new ArrayList<>();
+
+		for(Member member : members) {
+			jsonMembers.add(member.serialize());
+		}
+
+		return simple("members", jsonMembers);
 	}
 
 }
