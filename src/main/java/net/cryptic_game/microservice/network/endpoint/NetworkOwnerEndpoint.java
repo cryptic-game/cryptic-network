@@ -151,4 +151,29 @@ public class NetworkOwnerEndpoint {
 
         return simple("result", true);
     }
+
+    @UserEndpoint(path = { "revoke" }, keys = { "uuid" }, types = { String.class })
+    public static JSONObject revoke(JSONObject data, UUID user) {
+        UUID uuid = UUID.fromString((String) data.get("uuid"));
+
+        Invitation invitation = Invitation.getInvitation(uuid);
+
+        if (invitation == null) {
+            return error("invitation_not_found");
+        }
+
+        if (invitation.isRequest()) {
+            if (!Device.checkPermissions(invitation.getDevice(), user)) {
+                return error("no_permissions");
+            }
+        } else {
+            if (!Device.checkPermissions(Network.get(invitation.getNetwork()).getOwner(), user)) {
+                return error("no_permissions");
+            }
+        }
+
+        invitation.revoke();
+
+        return simple("result", true);
+    }
 }
