@@ -5,15 +5,14 @@ import net.cryptic_game.microservice.network.communication.Device;
 import net.cryptic_game.microservice.network.model.Invitation;
 import net.cryptic_game.microservice.network.model.Member;
 import net.cryptic_game.microservice.network.model.Network;
-import net.cryptic_game.microservice.utils.JSONUtils;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static net.cryptic_game.microservice.utils.JSONUtils.error;
-import static net.cryptic_game.microservice.utils.JSONUtils.simple;
+import static net.cryptic_game.microservice.utils.JSONBuilder.error;
+import static net.cryptic_game.microservice.utils.JSONBuilder.simple;
 
 public class NetworkOwnerEndpoint {
 
@@ -39,7 +38,7 @@ public class NetworkOwnerEndpoint {
         Network network = Network.get(uuid);
 
         if (network == null || !Device.checkPermissions(network.getOwner(), user)) {
-            return JSONUtils.error("network_not_found");
+            return error("network_not_found");
         }
 
         if(network.getOwner().equals(device)) {
@@ -114,7 +113,7 @@ public class NetworkOwnerEndpoint {
         Network network = Network.get(uuid);
 
         if(network == null || !Device.checkPermissions(network.getOwner(), user)) {
-            return JSONUtils.error("no_permissions");
+            return error("no_permissions");
         }
 
         List<JSONObject> invitations = new ArrayList<>();
@@ -123,7 +122,7 @@ public class NetworkOwnerEndpoint {
             invitations.add(invitation.serialize());
         }
 
-        return JSONUtils.simple("requests", invitations);
+        return simple("requests", invitations);
     }
 
     @UserEndpoint(path = { "kick" }, keys = { "uuid", "device" }, types = { String.class, String.class })

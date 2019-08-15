@@ -1,6 +1,6 @@
 package net.cryptic_game.microservice.network.endpoint;
 
-import net.cryptic_game.microservice.endpoint.MicroserviceEndpoint;
+import net.cryptic_game.microservice.endpoint.MicroServiceEndpoint;
 import net.cryptic_game.microservice.endpoint.UserEndpoint;
 import net.cryptic_game.microservice.network.communication.Device;
 import net.cryptic_game.microservice.network.model.Member;
@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static net.cryptic_game.microservice.utils.JSONUtils.error;
-import static net.cryptic_game.microservice.utils.JSONUtils.simple;
+import static net.cryptic_game.microservice.utils.JSONBuilder.error;
+import static net.cryptic_game.microservice.utils.JSONBuilder.simple;
 
 public class NetworkEndpoint {
 
@@ -84,7 +84,7 @@ public class NetworkEndpoint {
 		}
 	}
 
-	@MicroserviceEndpoint(path = { "check" }, keys = { "source", "destination" }, types = { String.class,
+	@MicroServiceEndpoint(path = { "check" }, keys = { "source", "destination" }, types = { String.class,
 			String.class })
 	public static JSONObject check(JSONObject data, UUID user) {
 		UUID source = UUID.fromString((String) data.get("source"));
@@ -102,7 +102,7 @@ public class NetworkEndpoint {
 	}
 
 
-	@MicroserviceEndpoint(path = { "members" }, keys = { "uuid" }, types = { String.class })
+	@UserEndpoint(path = { "members" }, keys = { "uuid" }, types = { String.class })
 	public static JSONObject members(JSONObject data, UUID user) {
 		UUID uuid = UUID.fromString((String) data.get("uuid"));
 

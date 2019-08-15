@@ -1,24 +1,19 @@
 package net.cryptic_game.microservice.network.model;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 import net.cryptic_game.microservice.db.Database;
+import net.cryptic_game.microservice.model.Model;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
 import org.hibernate.criterion.Restrictions;
 import org.json.simple.JSONObject;
 
-import net.cryptic_game.microservice.model.Model;
-
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Entity
 @Table(name = "network_member")

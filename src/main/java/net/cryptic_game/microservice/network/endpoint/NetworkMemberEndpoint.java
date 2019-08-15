@@ -5,19 +5,20 @@ import net.cryptic_game.microservice.network.communication.Device;
 import net.cryptic_game.microservice.network.model.Invitation;
 import net.cryptic_game.microservice.network.model.Member;
 import net.cryptic_game.microservice.network.model.Network;
-import net.cryptic_game.microservice.utils.JSONUtils;
+import net.cryptic_game.microservice.utils.JSON;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static net.cryptic_game.microservice.utils.JSONUtils.simple;
+import static net.cryptic_game.microservice.utils.JSONBuilder.error;
+import static net.cryptic_game.microservice.utils.JSONBuilder.simple;
 
 public class NetworkMemberEndpoint {
 
     @UserEndpoint(path = { "member" }, keys = { "device" }, types = { String.class })
-    public static JSONObject getAll(JSONObject data, UUID user) {
+    public static JSONObject getAll(JSON data, UUID user) {
         UUID device = UUID.fromString((String) data.get("device"));
 
         List<Network> networks = Member.getNetworks(device);
@@ -38,7 +39,7 @@ public class NetworkMemberEndpoint {
         Network network = Network.get(uuid);
 
         if (network == null) {
-            return JSONUtils.error("network_not_found");
+            return error("network_not_found");
         }
 
         if (Device.checkPermissions(device, user)) {
@@ -58,7 +59,7 @@ public class NetworkMemberEndpoint {
 
             return invitation.serialize();
         } else {
-            return JSONUtils.error("no_permissions");
+            return error("no_permissions");
         }
     }
 
@@ -67,7 +68,7 @@ public class NetworkMemberEndpoint {
         UUID device = UUID.fromString((String) data.get("device"));
 
         if(!Device.checkPermissions(device, user)) {
-            return JSONUtils.error("no_permissions");
+            return error("no_permissions");
         }
 
         List<JSONObject> invitations = new ArrayList<>();
@@ -76,7 +77,7 @@ public class NetworkMemberEndpoint {
             invitations.add(invitation.serialize());
         }
 
-        return JSONUtils.simple("invitations", invitations);
+        return simple("invitations", invitations);
     }
 
     @UserEndpoint(path = {"leave"}, keys = {"uuid", "device"}, types = {String.class, String.class})
@@ -87,7 +88,7 @@ public class NetworkMemberEndpoint {
         Network network = Network.get(uuid);
 
         if(network == null || !Device.checkPermissions(device, user)) {
-            return JSONUtils.error("no_permissions");
+            return error("no_permissions");
         }
 
         for(Member member : Member.getMembers(network.getUUID())) {
