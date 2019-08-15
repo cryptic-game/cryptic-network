@@ -47,6 +47,8 @@ public class Invitation extends Model {
 		this.delete();
 	}
 
+	public void revoke() { this.delete(); }
+
 	public void accept() {
 		Network network = Network.get(this.network);
 
