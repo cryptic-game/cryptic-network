@@ -42,6 +42,18 @@ public class NetworkMemberEndpoint {
         }
 
         if (Device.checkPermissions(device, user)) {
+
+            if(network.getOwner().equals(device)) {
+                return error("already_member_of_network");
+            }
+
+            List<Member> members = Member.getMembers(uuid);
+            for(Member member : members) {
+                if (member.getDevice().equals(device)) {
+                    return error("already_member_of_network");
+                }
+            }
+
             Invitation invitation = Invitation.request(device, network.getUUID());
 
             return invitation.serialize();
