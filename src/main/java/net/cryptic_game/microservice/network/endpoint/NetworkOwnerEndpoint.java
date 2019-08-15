@@ -42,6 +42,17 @@ public class NetworkOwnerEndpoint {
             return JSONUtils.error("network_not_found");
         }
 
+        if(network.getOwner().equals(device)) {
+            return error("already_member_of_network");
+        }
+
+        List<Member> members = Member.getMembers(uuid);
+        for(Member member : members) {
+            if(member.getDevice().equals(device)) {
+                return error("already_member_of_network");
+            }
+        }
+
         Invitation invitation = Invitation.invite(device, network.getUUID());
 
         return invitation.serialize();
