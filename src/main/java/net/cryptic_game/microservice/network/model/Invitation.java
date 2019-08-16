@@ -19,114 +19,117 @@ import java.util.UUID;
 @Table(name = "invitation")
 public class Invitation extends Model {
 
-	@Type(type="uuid-char")
-	private UUID device;
-	@Type(type="uuid-char")
-	private UUID network;
-	private boolean request;
+    @Type(type = "uuid-char")
+    private UUID device;
+    @Type(type = "uuid-char")
+    private UUID network;
+    private boolean request;
 
-	private Invitation(UUID uuid, UUID device, UUID network, boolean request) {
-		this.uuid = uuid;
-		this.device = device;
-		this.network = network;
-		this.request = request;
-	}
+    private Invitation(UUID uuid, UUID device, UUID network, boolean request) {
+        this.uuid = uuid;
+        this.device = device;
+        this.network = network;
+        this.request = request;
+    }
 
-	public UUID getDevice() {
-		return device;
-	}
+    public UUID getDevice() {
+        return device;
+    }
 
-	public UUID getNetwork() {
-		return network;
-	}
+    public UUID getNetwork() {
+        return network;
+    }
 
-	public boolean isRequest() {
-		return request;
-	}
+    public boolean isRequest() {
+        return request;
+    }
 
-	public void deny() {
-		this.delete();
-	}
+    public void deny() {
+        this.delete();
+    }
 
-	public void revoke() { this.delete(); }
+    public void revoke() {
+        this.delete();
+    }
 
-	public void accept() {
-		Network network = Network.get(this.network);
+    public void accept() {
+        Network network = Network.get(this.network);
 
-		if (network != null) {
-			network.addMemeber(this.device);
-		}
+        if (network != null) {
+            network.addMemeber(this.device);
+        }
 
-		this.delete();
-	}
+        this.delete();
+    }
 
-	public JSONObject serialize() {
-		Map<String, Object> jsonMap = new HashMap<String, Object>();
+    public JSONObject serialize() {
+        Map<String, Object> jsonMap = new HashMap<String, Object>();
 
-		jsonMap.put("uuid", getUUID().toString());
-		jsonMap.put("network", getNetwork().toString());
-		jsonMap.put("device", getDevice().toString());
-		jsonMap.put("request", isRequest());
+        jsonMap.put("uuid", getUUID().toString());
+        jsonMap.put("network", getNetwork().toString());
+        jsonMap.put("device", getDevice().toString());
+        jsonMap.put("request", isRequest());
 
-		return new JSONObject(jsonMap);
-	}
+        return new JSONObject(jsonMap);
+    }
 
-	public static List<Invitation> getInvitationsOfDevice(UUID device, boolean request) {
-		Session session = Database.getInstance().openSession();
+    public static List<Invitation> getInvitationsOfDevice(UUID device, boolean request) {
+        Session session = Database.getInstance().openSession();
 
-		Criteria crit = session.createCriteria(Invitation.class);
-		crit.add(Restrictions.eq("device", device));
-		crit.add(Restrictions.eq("request", request));
-		List<Invitation> results = crit.list();
+        Criteria crit = session.createCriteria(Invitation.class);
+        crit.add(Restrictions.eq("device", device));
+        crit.add(Restrictions.eq("request", request));
+        List<Invitation> results = crit.list();
 
-		session.close();
-		return results;
-	}
+        session.close();
+        return results;
+    }
 
-	public static List<Invitation> getInvitationsOfNetwork(UUID network, boolean request) {
-		Session session = Database.getInstance().openSession();
+    public static List<Invitation> getInvitationsOfNetwork(UUID network, boolean request) {
+        Session session = Database.getInstance().openSession();
 
-		Criteria crit = session.createCriteria(Invitation.class);
-		crit.add(Restrictions.eq("network", network));
-		crit.add(Restrictions.eq("request", request));
-		List<Invitation> results = crit.list();
+        Criteria crit = session.createCriteria(Invitation.class);
+        crit.add(Restrictions.eq("network", network));
+        crit.add(Restrictions.eq("request", request));
+        List<Invitation> results = crit.list();
 
-		session.close();
-		return results;
-	}
-	public static Invitation getInvitation(UUID uuid) {
-		Session session = Database.getInstance().openSession();
-		session.beginTransaction();
+        session.close();
+        return results;
+    }
 
-		Invitation invitation = session.get(Invitation.class, uuid);
+    public static Invitation getInvitation(UUID uuid) {
+        Session session = Database.getInstance().openSession();
+        session.beginTransaction();
 
-		session.getTransaction().commit();
-		session.close();
+        Invitation invitation = session.get(Invitation.class, uuid);
 
-		return invitation;
-	}
+        session.getTransaction().commit();
+        session.close();
 
-	public static Invitation request(UUID device, UUID network) {
-		return create(device, network, true);
-	}
+        return invitation;
+    }
 
-	public static Invitation invite(UUID device, UUID network) {
-		return create(device, network, false);
-	}
+    public static Invitation request(UUID device, UUID network) {
+        return create(device, network, true);
+    }
 
-	private static Invitation create(UUID device, UUID network, boolean request) {
-		UUID uuid = UUID.randomUUID();
+    public static Invitation invite(UUID device, UUID network) {
+        return create(device, network, false);
+    }
 
-		Invitation invitation = new Invitation(uuid, device, network, request);
+    private static Invitation create(UUID device, UUID network, boolean request) {
+        UUID uuid = UUID.randomUUID();
 
-		Session session = Database.getInstance().openSession();
-		session.beginTransaction();
+        Invitation invitation = new Invitation(uuid, device, network, request);
 
-		session.save(invitation);
+        Session session = Database.getInstance().openSession();
+        session.beginTransaction();
 
-		session.getTransaction().commit();
-		session.close();
+        session.save(invitation);
 
-		return invitation;
-	}
+        session.getTransaction().commit();
+        session.close();
+
+        return invitation;
+    }
 }

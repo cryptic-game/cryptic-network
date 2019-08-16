@@ -19,132 +19,132 @@ import java.util.UUID;
 @Table(name = "network")
 public class Network extends Model {
 
-	@Type(type="uuid-char")
-	private UUID owner;
-	private boolean hidden;
-	private String name;
+    @Type(type = "uuid-char")
+    private UUID owner;
+    private boolean hidden;
+    private String name;
 
-	private Network(UUID uuid, UUID owner, boolean hidden, String name) {
-		this.uuid = uuid;
-		this.owner = owner;
-		this.hidden = hidden;
-		this.name = name;
-	}
+    private Network(UUID uuid, UUID owner, boolean hidden, String name) {
+        this.uuid = uuid;
+        this.owner = owner;
+        this.hidden = hidden;
+        this.name = name;
+    }
 
-	public UUID getOwner() {
-		return owner;
-	}
+    public UUID getOwner() {
+        return owner;
+    }
 
-	public boolean isHidden() {
-		return hidden;
-	}
+    public boolean isHidden() {
+        return hidden;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void update() {
-		Session session = Database.getInstance().openSession();
-		session.beginTransaction();
+    public void update() {
+        Session session = Database.getInstance().openSession();
+        session.beginTransaction();
 
-		session.save(this);
+        session.save(this);
 
-		session.getTransaction().commit();
-		session.close();
-	}
+        session.getTransaction().commit();
+        session.close();
+    }
 
-	public Member addMemeber(UUID member) {
-		return Member.create(member, this.getUUID());
-	}
+    public Member addMemeber(UUID member) {
+        return Member.create(member, this.getUUID());
+    }
 
-	public JSONObject serialize() {
-		Map<String, Object> jsonMap = new HashMap<String, Object>();
+    public JSONObject serialize() {
+        Map<String, Object> jsonMap = new HashMap<String, Object>();
 
-		jsonMap.put("uuid", getUUID().toString());
-		jsonMap.put("hidden", isHidden());
-		jsonMap.put("owner", getOwner().toString());
-		jsonMap.put("name", getName());
+        jsonMap.put("uuid", getUUID().toString());
+        jsonMap.put("hidden", isHidden());
+        jsonMap.put("owner", getOwner().toString());
+        jsonMap.put("name", getName());
 
-		return new JSONObject(jsonMap);
-	}
+        return new JSONObject(jsonMap);
+    }
 
-	public static Network get(UUID uuid) {
-		Session session = Database.getInstance().openSession();
-		session.beginTransaction();
+    public static Network get(UUID uuid) {
+        Session session = Database.getInstance().openSession();
+        session.beginTransaction();
 
-		Network network = session.get(Network.class, uuid);
+        Network network = session.get(Network.class, uuid);
 
-		session.getTransaction().commit();
-		session.close();
+        session.getTransaction().commit();
+        session.close();
 
-		return network;
-	}
+        return network;
+    }
 
-	public static List<Network> getPublicNetworks() {
-		Session session = Database.getInstance().openSession();
+    public static List<Network> getPublicNetworks() {
+        Session session = Database.getInstance().openSession();
 
-		Criteria crit = session.createCriteria(Network.class);
-		crit.add(Restrictions.eq("hidden", false));
-		List<Network> results = crit.list();
+        Criteria crit = session.createCriteria(Network.class);
+        crit.add(Restrictions.eq("hidden", false));
+        List<Network> results = crit.list();
 
-		session.close();
-		return results;
-	}
+        session.close();
+        return results;
+    }
 
-	public static List<Network> getNetworks(UUID device) {
-		Session session = Database.getInstance().openSession();
+    public static List<Network> getNetworks(UUID device) {
+        Session session = Database.getInstance().openSession();
 
-		Criteria crit = session.createCriteria(Network.class);
-		crit.add(Restrictions.eq("owner", device));
-		List<Network> results = crit.list();
+        Criteria crit = session.createCriteria(Network.class);
+        crit.add(Restrictions.eq("owner", device));
+        List<Network> results = crit.list();
 
-		session.close();
-		return results;
-	}
+        session.close();
+        return results;
+    }
 
-	public static int getCountOfNetworksByDevice(UUID device) {
-		return Member.getNetworks(device).size();
-	}
+    public static int getCountOfNetworksByDevice(UUID device) {
+        return Member.getNetworks(device).size();
+    }
 
-	public static Network create(UUID owner, String name, boolean hidden) {
-		UUID uuid = UUID.randomUUID();
-		Network network = new Network(uuid, owner, hidden, name);
+    public static Network create(UUID owner, String name, boolean hidden) {
+        UUID uuid = UUID.randomUUID();
+        Network network = new Network(uuid, owner, hidden, name);
 
-		Session session = Database.getInstance().openSession();
-		session.beginTransaction();
+        Session session = Database.getInstance().openSession();
+        session.beginTransaction();
 
-		session.save(network);
+        session.save(network);
 
-		session.getTransaction().commit();
-		session.close();
+        session.getTransaction().commit();
+        session.close();
 
-		return network;
-	}
+        return network;
+    }
 
-	public static Network getNetworkByName(String name) {
-		Session session = Database.getInstance().openSession();
+    public static Network getNetworkByName(String name) {
+        Session session = Database.getInstance().openSession();
 
-		Criteria crit = session.createCriteria(Network.class);
-		crit.add(Restrictions.eq("name", name));
-		List<Network> results = crit.list();
+        Criteria crit = session.createCriteria(Network.class);
+        crit.add(Restrictions.eq("name", name));
+        List<Network> results = crit.list();
 
-		session.close();
+        session.close();
 
-		if(results.size() == 0) return null;
+        if (results.size() == 0) return null;
 
-		return results.get(0);
-	}
+        return results.get(0);
+    }
 
-	public static boolean checkName(String name) {
-		return name.length() >= 5 && name.length() <= 20 && !name.contains(" ");
-	}
+    public static boolean checkName(String name) {
+        return name.length() >= 5 && name.length() <= 20 && !name.contains(" ");
+    }
 
-	@Override
-	public void delete() {
-		super.delete();
-		List<Invitation> invitations = Invitation.getInvitationsOfNetwork(uuid, true);
-		invitations.addAll(Invitation.getInvitationsOfNetwork(uuid, false));
+    @Override
+    public void delete() {
+        super.delete();
+        List<Invitation> invitations = Invitation.getInvitationsOfNetwork(uuid, true);
+        invitations.addAll(Invitation.getInvitationsOfNetwork(uuid, false));
 
-		invitations.forEach(Model::delete);
-	}
+        invitations.forEach(Model::delete);
+    }
 }

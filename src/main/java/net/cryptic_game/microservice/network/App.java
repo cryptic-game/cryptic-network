@@ -6,14 +6,14 @@ import net.cryptic_game.microservice.MicroService;
 
 public class App extends MicroService {
 
-	public App() {
-		super("network");
-	}
+    public App() {
+        super("network");
+    }
 
-	public static void main(String[] args) {
-		BasicConfigurator.configure();
+    public static void main(String[] args) {
+        BasicConfigurator.configure();
 
-		new App();
-	}
+        new App();
+    }
 
 }

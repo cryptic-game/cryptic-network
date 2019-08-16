@@ -19,71 +19,71 @@ import java.util.UUID;
 @Table(name = "network_member")
 public class Member extends Model {
 
-	@Type(type="uuid-char")
-	private UUID device;
-	@Type(type="uuid-char")
-	private UUID network;
+    @Type(type = "uuid-char")
+    private UUID device;
+    @Type(type = "uuid-char")
+    private UUID network;
 
-	private static String tablename = "network_member";
+    private static String tablename = "network_member";
 
-	private Member(UUID uuid, UUID device, UUID network) {
-		this.uuid = uuid;
-		this.device = device;
-		this.network = network;
-	}
+    private Member(UUID uuid, UUID device, UUID network) {
+        this.uuid = uuid;
+        this.device = device;
+        this.network = network;
+    }
 
-	public UUID getDevice() {
-		return device;
-	}
+    public UUID getDevice() {
+        return device;
+    }
 
-	public UUID getNetwork() {
-		return network;
-	}
+    public UUID getNetwork() {
+        return network;
+    }
 
-	public JSONObject serialize() {
-		Map<String, Object> jsonMap = new HashMap<>();
+    public JSONObject serialize() {
+        Map<String, Object> jsonMap = new HashMap<>();
 
-		jsonMap.put("uuid", getUUID().toString());
-		jsonMap.put("network", getNetwork().toString());
-		jsonMap.put("device", getDevice().toString());
+        jsonMap.put("uuid", getUUID().toString());
+        jsonMap.put("network", getNetwork().toString());
+        jsonMap.put("device", getDevice().toString());
 
-		return new JSONObject(jsonMap);
-	}
+        return new JSONObject(jsonMap);
+    }
 
-	public static List<Network> getNetworks(UUID device) {
-		Session session = Database.getInstance().openSession();
+    public static List<Network> getNetworks(UUID device) {
+        Session session = Database.getInstance().openSession();
 
-		Criteria crit = session.createCriteria(Member.class);
-		crit.add(Restrictions.eq("device", device));
-		List<Network> results = crit.list();
+        Criteria crit = session.createCriteria(Member.class);
+        crit.add(Restrictions.eq("device", device));
+        List<Network> results = crit.list();
 
-		session.close();
-		return results;
-	}
+        session.close();
+        return results;
+    }
 
-	public static List<Member> getMembers(UUID network) {
-		Session session = Database.getInstance().openSession();
+    public static List<Member> getMembers(UUID network) {
+        Session session = Database.getInstance().openSession();
 
-		Criteria crit = session.createCriteria(Member.class);
-		crit.add(Restrictions.eq("network", network));
-		List<Member> results = crit.list();
+        Criteria crit = session.createCriteria(Member.class);
+        crit.add(Restrictions.eq("network", network));
+        List<Member> results = crit.list();
 
-		session.close();
-		return results;
-	}
+        session.close();
+        return results;
+    }
 
-	public static Member create(UUID device, UUID network) {
-		UUID uuid = UUID.randomUUID();
-		Member member = new Member(uuid, device, network);
+    public static Member create(UUID device, UUID network) {
+        UUID uuid = UUID.randomUUID();
+        Member member = new Member(uuid, device, network);
 
-		Session session = Database.getInstance().openSession();
-		session.beginTransaction();
+        Session session = Database.getInstance().openSession();
+        session.beginTransaction();
 
-		session.save(member);
+        session.save(member);
 
-		session.getTransaction().commit();
-		session.close();
+        session.getTransaction().commit();
+        session.close();
 
-		return member;
-	}
+        return member;
+    }
 }

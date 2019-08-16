@@ -17,9 +17,9 @@ import static net.cryptic_game.microservice.utils.JSONBuilder.simple;
 
 public class NetworkMemberEndpoint {
 
-    @UserEndpoint(path = { "member" }, keys = { "device" }, types = { String.class })
+    @UserEndpoint(path = {"member"}, keys = {"device"}, types = {String.class})
     public static JSONObject getAll(JSON data, UUID user) {
-        UUID device = UUID.fromString((String) data.get("device"));
+        UUID device = data.getUUID("device");
 
         List<Network> networks = Member.getNetworks(device);
 
@@ -31,10 +31,10 @@ public class NetworkMemberEndpoint {
         return simple("networks", jsonNetworks);
     }
 
-    @UserEndpoint(path = { "request" }, keys = { "uuid", "device" }, types = { String.class, String.class })
-    public static JSONObject request(JSONObject data, UUID user) {
-        UUID uuid = UUID.fromString((String) data.get("uuid"));
-        UUID device = UUID.fromString((String) data.get("device"));
+    @UserEndpoint(path = {"request"}, keys = {"uuid", "device"}, types = {String.class, String.class})
+    public static JSONObject request(JSON data, UUID user) {
+        UUID uuid = data.getUUID("uuid");
+        UUID device = data.getUUID("device");
 
         Network network = Network.get(uuid);
 
@@ -44,12 +44,12 @@ public class NetworkMemberEndpoint {
 
         if (Device.checkPermissions(device, user)) {
 
-            if(network.getOwner().equals(device)) {
+            if (network.getOwner().equals(device)) {
                 return error("already_member_of_network");
             }
 
             List<Member> members = Member.getMembers(uuid);
-            for(Member member : members) {
+            for (Member member : members) {
                 if (member.getDevice().equals(device)) {
                     return error("already_member_of_network");
                 }
@@ -63,17 +63,17 @@ public class NetworkMemberEndpoint {
         }
     }
 
-    @UserEndpoint(path = { "invitations" }, keys = { "device" }, types = { String.class })
-    public static JSONObject invitations(JSONObject data, UUID user) {
-        UUID device = UUID.fromString((String) data.get("device"));
+    @UserEndpoint(path = {"invitations"}, keys = {"device"}, types = {String.class})
+    public static JSONObject invitations(JSON data, UUID user) {
+        UUID device = data.getUUID("device");
 
-        if(!Device.checkPermissions(device, user)) {
+        if (!Device.checkPermissions(device, user)) {
             return error("no_permissions");
         }
 
         List<JSONObject> invitations = new ArrayList<>();
 
-        for(Invitation invitation : Invitation.getInvitationsOfDevice(device, false)) {
+        for (Invitation invitation : Invitation.getInvitationsOfDevice(device, false)) {
             invitations.add(invitation.serialize());
         }
 
@@ -81,18 +81,18 @@ public class NetworkMemberEndpoint {
     }
 
     @UserEndpoint(path = {"leave"}, keys = {"uuid", "device"}, types = {String.class, String.class})
-    public static JSONObject leave(JSONObject data, UUID user) {
-        UUID uuid = UUID.fromString((String) data.get("uuid"));
-        UUID device = UUID.fromString((String) data.get("device"));
+    public static JSONObject leave(JSON data, UUID user) {
+        UUID uuid = data.getUUID("uuid");
+        UUID device = data.getUUID("device");
 
         Network network = Network.get(uuid);
 
-        if(network == null || !Device.checkPermissions(device, user)) {
+        if (network == null || !Device.checkPermissions(device, user)) {
             return error("no_permissions");
         }
 
-        for(Member member : Member.getMembers(network.getUUID())) {
-            if(member.getDevice().equals(device)) {
+        for (Member member : Member.getMembers(network.getUUID())) {
+            if (member.getDevice().equals(device)) {
                 member.delete();
 
                 return simple("result", true);
