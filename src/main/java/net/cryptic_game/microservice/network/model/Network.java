@@ -3,14 +3,17 @@ package net.cryptic_game.microservice.network.model;
 import net.cryptic_game.microservice.db.Database;
 import net.cryptic_game.microservice.model.Model;
 import net.cryptic_game.microservice.utils.JSONBuilder;
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
-import org.hibernate.criterion.Restrictions;
 import org.json.simple.JSONObject;
 
 import javax.persistence.Entity;
+import javax.persistence.NoResultException;
 import javax.persistence.Table;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +32,8 @@ public class Network extends Model {
         this.hidden = hidden;
         this.name = name;
     }
+
+    public Network() {}
 
     public UUID getOwner() {
         return owner;
@@ -79,9 +84,16 @@ public class Network extends Model {
     public static List<Network> getPublicNetworks() {
         Session session = Database.getInstance().openSession();
 
-        Criteria crit = session.createCriteria(Network.class);
-        crit.add(Restrictions.eq("hidden", false));
-        List<Network> results = crit.list();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Network> criteria = builder.createQuery(Network.class);
+        Root<Network> from = criteria.from(Network.class);
+
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("hidden"), false));
+
+        TypedQuery<Network> typed = session.createQuery(criteria);
+
+        List<Network> results = typed.getResultList();
 
         session.close();
         return results;
@@ -90,9 +102,16 @@ public class Network extends Model {
     public static List<Network> getNetworks(UUID device) {
         Session session = Database.getInstance().openSession();
 
-        Criteria crit = session.createCriteria(Network.class);
-        crit.add(Restrictions.eq("owner", device));
-        List<Network> results = crit.list();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Network> criteria = builder.createQuery(Network.class);
+        Root<Network> from = criteria.from(Network.class);
+
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("owner"), device));
+
+        TypedQuery<Network> typed = session.createQuery(criteria);
+
+        List<Network> results = typed.getResultList();
 
         session.close();
         return results;
@@ -120,28 +139,30 @@ public class Network extends Model {
     public static Network getNetworkByName(String name) {
         Session session = Database.getInstance().openSession();
 
-        Criteria crit = session.createCriteria(Network.class);
-        crit.add(Restrictions.eq("name", name));
-        List<Network> results = crit.list();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Network> criteria = builder.createQuery(Network.class);
+        Root<Network> from = criteria.from(Network.class);
+
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("name"), name));
+
+        TypedQuery<Network> typed = session.createQuery(criteria);
+
+        Network result;
+
+        try {
+            result = typed.getSingleResult();
+        } catch (NoResultException e) {
+            session.close();
+            return null;
+        }
 
         session.close();
-
-        if (results.size() == 0) return null;
-
-        return results.get(0);
+        return result;
     }
 
     public static boolean checkName(String name) {
         return name.length() >= 5 && name.length() <= 20 && !name.contains(" ");
     }
 
-    @Override
-    public void delete() {
-        super.delete();
-
-        List<Invitation> invitations = Invitation.getInvitationsOfNetwork(uuid, true);
-        invitations.addAll(Invitation.getInvitationsOfNetwork(uuid, false));
-
-        invitations.forEach(Model::delete);
-    }
 }
