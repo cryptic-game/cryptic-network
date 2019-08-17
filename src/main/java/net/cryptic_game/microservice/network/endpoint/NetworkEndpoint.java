@@ -1,6 +1,5 @@
 package net.cryptic_game.microservice.network.endpoint;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import net.cryptic_game.microservice.endpoint.MicroServiceEndpoint;
 import net.cryptic_game.microservice.endpoint.UserEndpoint;
 import net.cryptic_game.microservice.network.communication.Device;
@@ -13,7 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static net.cryptic_game.microservice.utils.JSONBuilder.*;
+import static net.cryptic_game.microservice.utils.JSONBuilder.error;
+import static net.cryptic_game.microservice.utils.JSONBuilder.simple;
 
 public class NetworkEndpoint {
 

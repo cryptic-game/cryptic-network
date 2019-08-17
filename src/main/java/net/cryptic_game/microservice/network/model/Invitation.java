@@ -2,6 +2,7 @@ package net.cryptic_game.microservice.network.model;
 
 import net.cryptic_game.microservice.db.Database;
 import net.cryptic_game.microservice.model.Model;
+import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
@@ -10,9 +11,7 @@ import org.json.simple.JSONObject;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -56,21 +55,18 @@ public class Invitation extends Model {
         Network network = Network.get(this.network);
 
         if (network != null) {
-            network.addMemeber(this.device);
+            network.addMember(this.device);
         }
 
         this.delete();
     }
 
     public JSONObject serialize() {
-        Map<String, Object> jsonMap = new HashMap<String, Object>();
-
-        jsonMap.put("uuid", getUUID().toString());
-        jsonMap.put("network", getNetwork().toString());
-        jsonMap.put("device", getDevice().toString());
-        jsonMap.put("request", isRequest());
-
-        return new JSONObject(jsonMap);
+        return JSONBuilder.anJSON()
+                .add("uuid", uuid.toString())
+                .add("network", network.toString())
+                .add("device", device.toString())
+                .add("request", request).build();
     }
 
     public static List<Invitation> getInvitationsOfDevice(UUID device, boolean request) {

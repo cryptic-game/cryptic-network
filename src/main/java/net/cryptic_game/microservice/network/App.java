@@ -6,7 +6,7 @@ import net.cryptic_game.microservice.MicroService;
 
 public class App extends MicroService {
 
-    public App() {
+    private App() {
         super("network");
     }
 

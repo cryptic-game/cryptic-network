@@ -2,6 +2,7 @@ package net.cryptic_game.microservice.network.model;
 
 import net.cryptic_game.microservice.db.Database;
 import net.cryptic_game.microservice.model.Model;
+import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
@@ -24,8 +25,6 @@ public class Member extends Model {
     @Type(type = "uuid-char")
     private UUID network;
 
-    private static String tablename = "network_member";
-
     private Member(UUID uuid, UUID device, UUID network) {
         this.uuid = uuid;
         this.device = device;
@@ -41,13 +40,10 @@ public class Member extends Model {
     }
 
     public JSONObject serialize() {
-        Map<String, Object> jsonMap = new HashMap<>();
-
-        jsonMap.put("uuid", getUUID().toString());
-        jsonMap.put("network", getNetwork().toString());
-        jsonMap.put("device", getDevice().toString());
-
-        return new JSONObject(jsonMap);
+        return JSONBuilder.anJSON()
+                .add("uuid", getUUID().toString())
+                .add("network", getNetwork().toString())
+                .add("device", getDevice().toString()).build();
     }
 
     public static List<Network> getNetworks(UUID device) {

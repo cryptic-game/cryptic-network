@@ -2,6 +2,7 @@ package net.cryptic_game.microservice.network.model;
 
 import net.cryptic_game.microservice.db.Database;
 import net.cryptic_game.microservice.model.Model;
+import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
@@ -10,9 +11,7 @@ import org.json.simple.JSONObject;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -53,19 +52,16 @@ public class Network extends Model {
         session.close();
     }
 
-    public Member addMemeber(UUID member) {
+    public Member addMember(UUID member) {
         return Member.create(member, this.getUUID());
     }
 
     public JSONObject serialize() {
-        Map<String, Object> jsonMap = new HashMap<String, Object>();
-
-        jsonMap.put("uuid", getUUID().toString());
-        jsonMap.put("hidden", isHidden());
-        jsonMap.put("owner", getOwner().toString());
-        jsonMap.put("name", getName());
-
-        return new JSONObject(jsonMap);
+        return JSONBuilder.anJSON()
+                .add("uuid", getUUID().toString())
+                .add("hidden", isHidden())
+                .add("owner", getOwner().toString())
+                .add("name", getName()).build();
     }
 
     public static Network get(UUID uuid) {
@@ -142,6 +138,7 @@ public class Network extends Model {
     @Override
     public void delete() {
         super.delete();
+
         List<Invitation> invitations = Invitation.getInvitationsOfNetwork(uuid, true);
         invitations.addAll(Invitation.getInvitationsOfNetwork(uuid, false));
 
