@@ -1,6 +1,7 @@
 package net.cryptic_game.microservice.network.endpoint;
 
 import net.cryptic_game.microservice.endpoint.UserEndpoint;
+import net.cryptic_game.microservice.model.Model;
 import net.cryptic_game.microservice.network.communication.Device;
 import net.cryptic_game.microservice.network.model.Invitation;
 import net.cryptic_game.microservice.network.model.Member;
@@ -159,6 +160,11 @@ public class NetworkOwnerEndpoint {
         }
 
         network.delete();
+
+        List<Invitation> invitations = Invitation.getInvitationsOfNetwork(uuid, true);
+        invitations.addAll(Invitation.getInvitationsOfNetwork(uuid, false));
+
+        invitations.forEach((Model::delete));
 
         return simple("result", true);
     }

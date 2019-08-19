@@ -3,14 +3,16 @@ package net.cryptic_game.microservice.network.model;
 import net.cryptic_game.microservice.db.Database;
 import net.cryptic_game.microservice.model.Model;
 import net.cryptic_game.microservice.utils.JSONBuilder;
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
-import org.hibernate.criterion.Restrictions;
 import org.json.simple.JSONObject;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +32,8 @@ public class Invitation extends Model {
         this.network = network;
         this.request = request;
     }
+
+    public Invitation() {}
 
     public UUID getDevice() {
         return device;
@@ -72,10 +76,15 @@ public class Invitation extends Model {
     public static List<Invitation> getInvitationsOfDevice(UUID device, boolean request) {
         Session session = Database.getInstance().openSession();
 
-        Criteria crit = session.createCriteria(Invitation.class);
-        crit.add(Restrictions.eq("device", device));
-        crit.add(Restrictions.eq("request", request));
-        List<Invitation> results = crit.list();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Invitation> criteria = builder.createQuery(Invitation.class);
+        Root<Invitation> from = criteria.from(Invitation.class);
+
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("device"), device), builder.equal(from.get("request"), request));
+        TypedQuery<Invitation> typed = session.createQuery(criteria);
+
+        List<Invitation> results = typed.getResultList();
 
         session.close();
         return results;
@@ -84,10 +93,15 @@ public class Invitation extends Model {
     public static List<Invitation> getInvitationsOfNetwork(UUID network, boolean request) {
         Session session = Database.getInstance().openSession();
 
-        Criteria crit = session.createCriteria(Invitation.class);
-        crit.add(Restrictions.eq("network", network));
-        crit.add(Restrictions.eq("request", request));
-        List<Invitation> results = crit.list();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Invitation> criteria = builder.createQuery(Invitation.class);
+        Root<Invitation> from = criteria.from(Invitation.class);
+
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("network"), network), builder.equal(from.get("request"), request));
+        TypedQuery<Invitation> typed = session.createQuery(criteria);
+
+        List<Invitation> results = typed.getResultList();
 
         session.close();
         return results;
