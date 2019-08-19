@@ -82,7 +82,6 @@ public class Invitation extends Model {
 
         criteria.select(from);
         criteria.where(builder.equal(from.get("device"), device), builder.equal(from.get("request"), request));
-
         TypedQuery<Invitation> typed = session.createQuery(criteria);
 
         List<Invitation> results = typed.getResultList();
@@ -100,7 +99,6 @@ public class Invitation extends Model {
 
         criteria.select(from);
         criteria.where(builder.equal(from.get("network"), network), builder.equal(from.get("request"), request));
-
         TypedQuery<Invitation> typed = session.createQuery(criteria);
 
         List<Invitation> results = typed.getResultList();

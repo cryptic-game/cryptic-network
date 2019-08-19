@@ -90,7 +90,6 @@ public class Network extends Model {
 
         criteria.select(from);
         criteria.where(builder.equal(from.get("hidden"), false));
-
         TypedQuery<Network> typed = session.createQuery(criteria);
 
         List<Network> results = typed.getResultList();
@@ -108,7 +107,6 @@ public class Network extends Model {
 
         criteria.select(from);
         criteria.where(builder.equal(from.get("owner"), device));
-
         TypedQuery<Network> typed = session.createQuery(criteria);
 
         List<Network> results = typed.getResultList();
@@ -145,7 +143,6 @@ public class Network extends Model {
 
         criteria.select(from);
         criteria.where(builder.equal(from.get("name"), name));
-
         TypedQuery<Network> typed = session.createQuery(criteria);
 
         Network result;
@@ -153,11 +150,11 @@ public class Network extends Model {
         try {
             result = typed.getSingleResult();
         } catch (NoResultException e) {
-            session.close();
             return null;
+        } finally {
+            session.close();
         }
 
-        session.close();
         return result;
     }
 

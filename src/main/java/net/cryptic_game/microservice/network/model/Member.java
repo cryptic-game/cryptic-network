@@ -58,7 +58,6 @@ public class Member extends Model {
 
         criteria.select(from);
         criteria.where(builder.equal(from.get("device"), device));
-
         TypedQuery<Member> typed = session.createQuery(criteria);
 
         List<Member> results = typed.getResultList();
@@ -80,7 +79,6 @@ public class Member extends Model {
 
         criteria.select(from);
         criteria.where(builder.equal(from.get("network"), network));
-
         TypedQuery<Member> typed = session.createQuery(criteria);
 
         List<Member> results = typed.getResultList();
