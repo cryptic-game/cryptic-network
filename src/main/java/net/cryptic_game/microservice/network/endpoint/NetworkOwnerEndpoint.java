@@ -164,7 +164,9 @@ public class NetworkOwnerEndpoint {
         List<Invitation> invitations = Invitation.getInvitationsOfNetwork(uuid, true);
         invitations.addAll(Invitation.getInvitationsOfNetwork(uuid, false));
 
-        invitations.forEach((Model::delete));
+        for(Invitation invitation : invitations) {
+            invitation.delete();
+        }
 
         return simple("result", true);
     }
