@@ -54,6 +54,13 @@ public class NetworkOwnerEndpoint {
             }
         }
 
+        List<Invitation> invitations = Invitation.getInvitationsOfDevice(device, false);
+        for(Invitation inv : invitations) {
+            if(inv.getNetwork().equals(uuid)) {
+                return error("invitation_already_exists");
+            }
+        }
+
         Invitation invitation = Invitation.invite(device, network.getUUID());
 
         return invitation.serialize();
