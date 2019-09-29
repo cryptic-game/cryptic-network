@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "invitation")
+@Table(name = "network_invitation")
 public class Invitation extends Model {
 
     @Type(type = "uuid-char")
