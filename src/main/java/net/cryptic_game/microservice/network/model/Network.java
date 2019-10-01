@@ -1,7 +1,9 @@
 package net.cryptic_game.microservice.network.model;
 
+import net.cryptic_game.microservice.MicroService;
 import net.cryptic_game.microservice.db.Database;
 import net.cryptic_game.microservice.model.Model;
+import net.cryptic_game.microservice.utils.JSON;
 import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
@@ -23,12 +25,15 @@ public class Network extends Model {
 
     @Type(type = "uuid-char")
     private UUID owner;
+    @Type(type = "uuid-char")
+    private UUID user;
     private boolean hidden;
     private String name;
 
-    private Network(UUID uuid, UUID owner, boolean hidden, String name) {
+    private Network(UUID uuid, UUID owner, UUID user, boolean hidden, String name) {
         this.uuid = uuid;
         this.owner = owner;
+        this.user = user;
         this.hidden = hidden;
         this.name = name;
     }
@@ -37,6 +42,10 @@ public class Network extends Model {
 
     public UUID getOwner() {
         return owner;
+    }
+
+    public UUID getUser() {
+        return user;
     }
 
     public boolean isHidden() {
@@ -98,6 +107,23 @@ public class Network extends Model {
         return results;
     }
 
+    public static List<Network> getNetworksOfUser(UUID user) {
+        Session session = Database.getInstance().openSession();
+
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Network> criteria = builder.createQuery(Network.class);
+        Root<Network> from = criteria.from(Network.class);
+
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("user"), user));
+        TypedQuery<Network> typed = session.createQuery(criteria);
+
+        List<Network> results = typed.getResultList();
+
+        session.close();
+        return results;
+    }
+
     public static List<Network> getNetworks(UUID device) {
         Session session = Database.getInstance().openSession();
 
@@ -121,7 +147,11 @@ public class Network extends Model {
 
     public static Network create(UUID owner, String name, boolean hidden) {
         UUID uuid = UUID.randomUUID();
-        Network network = new Network(uuid, owner, hidden, name);
+
+        JSONObject response = MicroService.getInstance().contactMicroService("device", new String[]{"owner"}, JSONBuilder.anJSON().add("device_uuid", owner.toString()).build());
+        UUID user = new JSON(response).getUUID("owner");
+
+        Network network = new Network(uuid, owner, user, hidden, name);
 
         Session session = Database.getInstance().openSession();
         session.beginTransaction();

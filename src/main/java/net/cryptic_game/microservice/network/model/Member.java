@@ -1,7 +1,9 @@
 package net.cryptic_game.microservice.network.model;
 
+import net.cryptic_game.microservice.MicroService;
 import net.cryptic_game.microservice.db.Database;
 import net.cryptic_game.microservice.model.Model;
+import net.cryptic_game.microservice.utils.JSON;
 import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
@@ -24,11 +26,14 @@ public class Member extends Model {
     @Type(type = "uuid-char")
     private UUID device;
     @Type(type = "uuid-char")
+    private UUID user;
+    @Type(type = "uuid-char")
     private UUID network;
 
-    private Member(UUID uuid, UUID device, UUID network) {
+    private Member(UUID uuid, UUID device, UUID user, UUID network) {
         this.uuid = uuid;
         this.device = device;
+        this.user = user;
         this.network = network;
     }
 
@@ -36,6 +41,10 @@ public class Member extends Model {
 
     public UUID getDevice() {
         return device;
+    }
+
+    public UUID getUser() {
+        return user;
     }
 
     public UUID getNetwork() {
@@ -70,6 +79,27 @@ public class Member extends Model {
         return networks;
     }
 
+    public static List<Network> getNetworksOfUser(UUID user) {
+        Session session = Database.getInstance().openSession();
+
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Member> criteria = builder.createQuery(Member.class);
+        Root<Member> from = criteria.from(Member.class);
+
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("user"), user));
+        TypedQuery<Member> typed = session.createQuery(criteria);
+
+        List<Member> results = typed.getResultList();
+        List<Network> networks = new ArrayList<>();
+        for(Member member : results) {
+            networks.add(Network.get(member.getNetwork()));
+        }
+
+        session.close();
+        return networks;
+    }
+
     public static List<Member> getMembers(UUID network) {
         Session session = Database.getInstance().openSession();
 
@@ -89,7 +119,11 @@ public class Member extends Model {
 
     public static Member create(UUID device, UUID network) {
         UUID uuid = UUID.randomUUID();
-        Member member = new Member(uuid, device, network);
+
+        JSONObject response = MicroService.getInstance().contactMicroService("device", new String[]{"owner"}, JSONBuilder.anJSON().add("device_uuid", device.toString()).build());
+        UUID user = new JSON(response).getUUID("owner");
+
+        Member member = new Member(uuid, device, user, network);
 
         Session session = Database.getInstance().openSession();
         session.beginTransaction();
