@@ -79,7 +79,7 @@ public class Member extends Model {
         return networks;
     }
 
-    public static List<Network> getNetworksOfUser(UUID user) {
+    public static List<Member> getMembershipsOfUser(UUID user) {
         Session session = Database.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
@@ -91,13 +91,9 @@ public class Member extends Model {
         TypedQuery<Member> typed = session.createQuery(criteria);
 
         List<Member> results = typed.getResultList();
-        List<Network> networks = new ArrayList<>();
-        for(Member member : results) {
-            networks.add(Network.get(member.getNetwork()));
-        }
 
         session.close();
-        return networks;
+        return results;
     }
 
     public static List<Member> getMembers(UUID network) {
