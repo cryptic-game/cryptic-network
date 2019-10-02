@@ -127,12 +127,18 @@ public class NetworkEndpoint {
     public static JSONObject deleteUser(JSON data, String ms) {
         UUID user = data.getUUID("user_uuid");
 
-        Invitation.getInvitationsOfUser(user).forEach((invitation -> invitation.delete()));
-        Member.getMembershipsOfUser(user).forEach(member -> member.delete());
-        Network.getNetworksOfUser(user).forEach(network -> {
-            Member.getMembers(network.getUUID()).forEach(member -> member.delete());
+        for (Invitation invitation : Invitation.getInvitationsOfUser(user)) {
+            invitation.delete();
+        }
+        for (Member member : Member.getMembershipsOfUser(user)) {
+            member.delete();
+        }
+        for (Network network : Network.getNetworksOfUser(user)) {
+            for (Member member : Member.getMembers(network.getUUID())) {
+                member.delete();
+            }
             network.delete();
-        });
+        }
 
         return new JSONObject();
     }
