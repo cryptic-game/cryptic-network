@@ -1,7 +1,9 @@
 package net.cryptic_game.microservice.network.model;
 
+import net.cryptic_game.microservice.MicroService;
 import net.cryptic_game.microservice.db.Database;
 import net.cryptic_game.microservice.model.Model;
+import net.cryptic_game.microservice.utils.JSON;
 import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
@@ -23,12 +25,15 @@ public class Invitation extends Model {
     @Type(type = "uuid-char")
     private UUID device;
     @Type(type = "uuid-char")
+    private UUID user;
+    @Type(type = "uuid-char")
     private UUID network;
     private boolean request;
 
-    private Invitation(UUID uuid, UUID device, UUID network, boolean request) {
+    private Invitation(UUID uuid, UUID device, UUID user, UUID network, boolean request) {
         this.uuid = uuid;
         this.device = device;
+        this.user = user;
         this.network = network;
         this.request = request;
     }
@@ -37,6 +42,10 @@ public class Invitation extends Model {
 
     public UUID getDevice() {
         return device;
+    }
+
+    public UUID getUser() {
+        return user;
     }
 
     public UUID getNetwork() {
@@ -107,6 +116,23 @@ public class Invitation extends Model {
         return results;
     }
 
+    public static List<Invitation> getInvitationsOfUser(UUID user) {
+        Session session = Database.getInstance().openSession();
+
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Invitation> criteria = builder.createQuery(Invitation.class);
+        Root<Invitation> from = criteria.from(Invitation.class);
+
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("user"), user));
+        TypedQuery<Invitation> typed = session.createQuery(criteria);
+
+        List<Invitation> results = typed.getResultList();
+
+        session.close();
+        return results;
+    }
+
     public static Invitation getInvitation(UUID uuid) {
         Session session = Database.getInstance().openSession();
         session.beginTransaction();
@@ -130,7 +156,10 @@ public class Invitation extends Model {
     private static Invitation create(UUID device, UUID network, boolean request) {
         UUID uuid = UUID.randomUUID();
 
-        Invitation invitation = new Invitation(uuid, device, network, request);
+        JSONObject response = MicroService.getInstance().contactMicroService("device", new String[]{"owner"}, JSONBuilder.anJSON().add("device_uuid", device.toString()).build());
+        UUID user = new JSON(response).getUUID("owner");
+
+        Invitation invitation = new Invitation(uuid, device, user, network, request);
 
         Session session = Database.getInstance().openSession();
         session.beginTransaction();

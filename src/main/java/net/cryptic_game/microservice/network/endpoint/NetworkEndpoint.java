@@ -3,6 +3,7 @@ package net.cryptic_game.microservice.network.endpoint;
 import net.cryptic_game.microservice.endpoint.MicroServiceEndpoint;
 import net.cryptic_game.microservice.endpoint.UserEndpoint;
 import net.cryptic_game.microservice.network.communication.Device;
+import net.cryptic_game.microservice.network.model.Invitation;
 import net.cryptic_game.microservice.network.model.Member;
 import net.cryptic_game.microservice.network.model.Network;
 import net.cryptic_game.microservice.utils.JSON;
@@ -87,7 +88,7 @@ public class NetworkEndpoint {
 
     @MicroServiceEndpoint(path = {"check"}, keys = {"source", "destination"}, types = {String.class,
             String.class})
-    public static JSONObject check(JSON data, UUID user) {
+    public static JSONObject check(JSON data, String ms) {
         UUID source = data.getUUID("source");
         UUID destination = data.getUUID("destination");
 
@@ -120,6 +121,26 @@ public class NetworkEndpoint {
         }
 
         return simple("members", jsonMembers);
+    }
+
+    @MicroServiceEndpoint(path = {"delete_user"}, keys = {"user_uuid"}, types = {String.class})
+    public static JSONObject deleteUser(JSON data, String ms) {
+        UUID user = data.getUUID("user_uuid");
+
+        for (Invitation invitation : Invitation.getInvitationsOfUser(user)) {
+            invitation.delete();
+        }
+        for (Member member : Member.getMembershipsOfUser(user)) {
+            member.delete();
+        }
+        for (Network network : Network.getNetworksOfUser(user)) {
+            for (Member member : Member.getMembers(network.getUUID())) {
+                member.delete();
+            }
+            network.delete();
+        }
+
+        return new JSONObject();
     }
 
 }
