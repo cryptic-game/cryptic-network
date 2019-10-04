@@ -141,10 +141,6 @@ public class Network extends Model {
         return results;
     }
 
-    public static int getCountOfNetworksByDevice(UUID device) {
-        return Member.getNetworks(device).size();
-    }
-
     public static Network create(UUID owner, String name, boolean hidden) {
         UUID uuid = UUID.randomUUID();
 
@@ -160,6 +156,8 @@ public class Network extends Model {
 
         session.getTransaction().commit();
         session.close();
+
+        network.addMember(owner);
 
         return network;
     }
