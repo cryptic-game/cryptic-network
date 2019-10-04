@@ -64,7 +64,7 @@ public class NetworkEndpoint {
 
         if (Device.checkPermissions(device, user)) {
 
-            int count = Network.getCountOfNetworksByDevice(device);
+            int count = Network.getNetworks(device).size();
 
             if (count >= 2) { // maximum 2 networks ownership per device
                 return error("maximum_networks_reached");
