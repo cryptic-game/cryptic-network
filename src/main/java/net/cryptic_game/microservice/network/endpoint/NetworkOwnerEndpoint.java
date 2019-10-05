@@ -1,7 +1,6 @@
 package net.cryptic_game.microservice.network.endpoint;
 
 import net.cryptic_game.microservice.endpoint.UserEndpoint;
-import net.cryptic_game.microservice.model.Model;
 import net.cryptic_game.microservice.network.communication.Device;
 import net.cryptic_game.microservice.network.model.Invitation;
 import net.cryptic_game.microservice.network.model.Member;
@@ -141,7 +140,7 @@ public class NetworkOwnerEndpoint {
 
         Network network = Network.get(uuid);
 
-        if (network == null || !Device.checkPermissions(network.getOwner(), user) || !Device.checkPermissions(network.getOwner(), user)) {
+        if (network == null || !Device.checkPermissions(network.getOwner(), user)) {
             return error("no_permissions");
         }
 
