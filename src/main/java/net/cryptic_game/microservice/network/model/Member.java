@@ -72,7 +72,10 @@ public class Member extends Model {
         List<Member> results = typed.getResultList();
         List<Network> networks = new ArrayList<>();
         for(Member member : results) {
-            networks.add(Network.get(member.getNetwork()));
+            Network network = Network.get(member.getNetwork());
+            if(network != null) {
+                networks.add(network);
+            }
         }
 
         session.close();

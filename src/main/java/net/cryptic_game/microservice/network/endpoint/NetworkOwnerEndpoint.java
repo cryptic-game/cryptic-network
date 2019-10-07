@@ -167,6 +167,12 @@ public class NetworkOwnerEndpoint {
 
         network.delete();
 
+        List<Member> members = Member.getMembers(uuid);
+
+        for(Member member : members) {
+            member.delete();
+        }
+
         List<Invitation> invitations = Invitation.getInvitationsOfNetwork(uuid, true);
         invitations.addAll(Invitation.getInvitationsOfNetwork(uuid, false));
 
