@@ -144,6 +144,10 @@ public class NetworkOwnerEndpoint {
             return error("no_permissions");
         }
 
+        if (network.getOwner().equals(device)) {
+            return error("cannot_kick_owner");
+        }
+
         for (Member member : Member.getMembers(network.getUUID())) {
             if (member.getDevice().equals(device)) {
                 member.delete();

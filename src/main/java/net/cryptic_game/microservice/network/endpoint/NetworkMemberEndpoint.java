@@ -98,6 +98,10 @@ public class NetworkMemberEndpoint {
             return error("no_permissions");
         }
 
+        if (network.getOwner().equals(device)) {
+            return error("cannot_leave_own_network");
+        }
+
         for (Member member : Member.getMembers(network.getUUID())) {
             if (member.getDevice().equals(device)) {
                 member.delete();
