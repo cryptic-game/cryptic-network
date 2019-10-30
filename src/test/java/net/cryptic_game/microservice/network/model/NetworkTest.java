@@ -18,6 +18,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -294,7 +295,7 @@ public class NetworkTest {
         assertNotNull(network);
         assertEquals(name, network.getName());
 
-        Mockito.when(typedQuery.getSingleResult()).thenAnswer((InvocationOnMock invocationOnMock) -> null);
+        Mockito.when(typedQuery.getSingleResult()).thenThrow(new NoResultException());
 
         network = Network.getNetworkByName(name);
         assertNull(network);
