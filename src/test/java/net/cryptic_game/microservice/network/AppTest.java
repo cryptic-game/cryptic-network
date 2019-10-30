@@ -3,8 +3,6 @@ package net.cryptic_game.microservice.network;
 import net.cryptic_game.microservice.endpoint.MicroServiceEndpoint;
 import net.cryptic_game.microservice.endpoint.UserEndpoint;
 import net.cryptic_game.microservice.utils.Tuple;
-import org.apache.log4j.Logger;
-import org.junit.Before;
 import org.junit.Test;
 import org.reflections.Reflections;
 import org.reflections.ReflectionsException;
