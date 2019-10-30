@@ -30,7 +30,7 @@ public class Invitation extends Model {
     private UUID network;
     private boolean request;
 
-    private Invitation(UUID uuid, UUID device, UUID user, UUID network, boolean request) {
+    protected Invitation(UUID uuid, UUID device, UUID user, UUID network, boolean request) {
         this.uuid = uuid;
         this.device = device;
         this.user = user;
@@ -153,7 +153,7 @@ public class Invitation extends Model {
         return create(device, network, false);
     }
 
-    private static Invitation create(UUID device, UUID network, boolean request) {
+    protected static Invitation create(UUID device, UUID network, boolean request) {
         UUID uuid = UUID.randomUUID();
 
         JSONObject response = MicroService.getInstance().contactMicroService("device", new String[]{"owner"}, JSONBuilder.anJSON().add("device_uuid", device.toString()).build());
