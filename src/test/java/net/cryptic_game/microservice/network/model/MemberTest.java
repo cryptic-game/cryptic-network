@@ -2,6 +2,7 @@ package net.cryptic_game.microservice.network.model;
 
 import net.cryptic_game.microservice.MicroService;
 import net.cryptic_game.microservice.db.Database;
+import net.cryptic_game.microservice.model.Model;
 import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -71,6 +72,8 @@ public class MemberTest {
 
     @Test
     public void constructorTest() {
+        assertTrue(new Member() instanceof Model);
+
         UUID uuid = UUID.randomUUID();
         UUID device = UUID.randomUUID();
         UUID user = UUID.randomUUID();

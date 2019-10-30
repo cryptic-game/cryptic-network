@@ -116,6 +116,8 @@ public class InvitationTest {
 
     @Test
     public void constructorTest() {
+        assertTrue(new Invitation() instanceof Model);
+
         UUID uuid = UUID.randomUUID();
         UUID device = UUID.randomUUID();
         UUID user = UUID.randomUUID();
@@ -223,7 +225,7 @@ public class InvitationTest {
         boolean request = rand.nextBoolean();
 
         Invitation invitation = Invitation.create(device, network, request);
-        invitation.deny();
+        invitation.revoke();
 
         assertEquals(0, invitations.size());
     }
