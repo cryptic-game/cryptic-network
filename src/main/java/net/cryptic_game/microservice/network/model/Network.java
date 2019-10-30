@@ -30,7 +30,7 @@ public class Network extends Model {
     private boolean hidden;
     private String name;
 
-    protected Network(UUID uuid, UUID owner, UUID user, boolean hidden, String name) {
+    public Network(UUID uuid, UUID owner, UUID user, boolean hidden, String name) {
         this.uuid = uuid;
         this.owner = owner;
         this.user = user;
