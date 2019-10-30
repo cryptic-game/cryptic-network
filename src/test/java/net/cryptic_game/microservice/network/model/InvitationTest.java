@@ -6,6 +6,7 @@ import net.cryptic_game.microservice.model.Model;
 import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +18,9 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -41,6 +45,18 @@ public class InvitationTest {
 
     @Mock
     private Session session;
+
+    @Mock
+    private CriteriaBuilder criteriaBuilder;
+
+    @Mock
+    private CriteriaQuery<Invitation> criteriaQuery;
+
+    @Mock
+    private Root<Invitation> root;
+
+    @Mock
+    private Query<Invitation> typedQuery;
 
     @Before
     public void setUp() throws Exception {
@@ -107,6 +123,11 @@ public class InvitationTest {
             }
             return null;
         });
+
+        PowerMockito.when(session.getCriteriaBuilder()).thenReturn(criteriaBuilder);
+        PowerMockito.when(criteriaBuilder.createQuery(Invitation.class)).thenReturn(criteriaQuery);
+        PowerMockito.when(criteriaQuery.from(Invitation.class)).thenReturn(root);
+        PowerMockito.when(session.createQuery(criteriaQuery)).thenReturn(typedQuery);
 
         PowerMockito.mockStatic(MicroService.class);
         PowerMockito.when(MicroService.getInstance()).thenReturn(microService);
@@ -268,5 +289,117 @@ public class InvitationTest {
         Invitation invitation = Invitation.getInvitation(created.getUUID());
 
         assertEquals(network, invitation.getNetwork());
+    }
+
+    @Test
+    public void getInvitationOfDeviceTest() {
+        invitations = new ArrayList<>();
+
+        UUID device = UUID.randomUUID();
+
+        Mockito.when(typedQuery.getResultList()).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            List<Invitation> returnInvitations = new ArrayList<>();
+            for(Invitation all : invitations) {
+                if(all.getDevice().equals(device) && all.isRequest()) {
+                    returnInvitations.add(all);
+                }
+            }
+            return returnInvitations;
+        });
+
+        Invitation.create(device, UUID.randomUUID(), true);
+
+        List<Invitation> invitationList = Invitation.getInvitationsOfDevice(device, true);
+
+        assertEquals(1, invitationList.size());
+        assertEquals(device, invitationList.get(0).getDevice());
+
+        invitations = new ArrayList<>();
+
+        Mockito.when(typedQuery.getResultList()).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            List<Invitation> returnInvitations = new ArrayList<>();
+            for(Invitation all : invitations) {
+                if(all.getDevice().equals(device) && !all.isRequest()) {
+                    returnInvitations.add(all);
+                }
+            }
+            return returnInvitations;
+        });
+
+        Invitation.create(device, UUID.randomUUID(), false);
+
+        invitationList = Invitation.getInvitationsOfDevice(device, false);
+
+        assertEquals(1, invitationList.size());
+        assertEquals(device, invitationList.get(0).getDevice());
+    }
+
+    @Test
+    public void getInvitationOfNetworkTest() {
+        invitations = new ArrayList<>();
+
+        UUID network = UUID.randomUUID();
+
+        Mockito.when(typedQuery.getResultList()).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            List<Invitation> returnInvitations = new ArrayList<>();
+            for(Invitation all : invitations) {
+                if(all.getNetwork().equals(network) && all.isRequest()) {
+                    returnInvitations.add(all);
+                }
+            }
+            return returnInvitations;
+        });
+
+        Invitation.create(UUID.randomUUID(), network, true);
+
+        List<Invitation> invitationList = Invitation.getInvitationsOfNetwork(network, true);
+
+        assertEquals(1, invitationList.size());
+        assertEquals(network, invitationList.get(0).getNetwork());
+
+        invitations = new ArrayList<>();
+
+        Mockito.when(typedQuery.getResultList()).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            List<Invitation> returnInvitations = new ArrayList<>();
+            for(Invitation all : invitations) {
+                if(all.getNetwork().equals(network) && !all.isRequest()) {
+                    returnInvitations.add(all);
+                }
+            }
+            return returnInvitations;
+        });
+
+        Invitation.create(UUID.randomUUID(), network, false);
+
+        invitationList = Invitation.getInvitationsOfNetwork(network, false);
+
+        assertEquals(1, invitationList.size());
+        assertEquals(network, invitationList.get(0).getNetwork());
+    }
+
+    @Test
+    public void getInvitationOfUserTest() {
+        invitations = new ArrayList<>();
+
+        UUID user = UUID.randomUUID();
+        PowerMockito.when(microService.contactMicroService(Mockito.eq("device"), Mockito.eq(new String[]{"owner"}), Mockito.any()))
+                .thenReturn(JSONBuilder.anJSON().add("owner", user.toString()).build());
+
+        Mockito.when(typedQuery.getResultList()).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            List<Invitation> returnInvitations = new ArrayList<>();
+            for(Invitation all : invitations) {
+                if(all.getUser().equals(user)) {
+                    returnInvitations.add(all);
+                }
+            }
+            return returnInvitations;
+        });
+
+        Invitation.create(UUID.randomUUID(), UUID.randomUUID(), rand.nextBoolean());
+
+        List<Invitation> invitationList = Invitation.getInvitationsOfUser(user);
+
+        assertEquals(1, invitationList.size());
+        assertEquals(user, invitationList.get(0).getUser());
     }
 }
