@@ -275,7 +275,7 @@ public class NetworkTest {
         networks = new ArrayList<>();
         String name = "network_" + rand.nextInt(100);
 
-        Mockito.when(typedQuery.getSingleResult()).thenAnswer((InvocationOnMock invocationOnMock) -> { ;
+        Mockito.when(typedQuery.getSingleResult()).thenAnswer((InvocationOnMock invocationOnMock) -> {
             for(Network all : networks) {
                 if(all.getName().equals(name)) {
                     return all;
@@ -293,5 +293,10 @@ public class NetworkTest {
 
         assertNotNull(network);
         assertEquals(name, network.getName());
+
+        Mockito.when(typedQuery.getSingleResult()).thenAnswer((InvocationOnMock invocationOnMock) -> null);
+
+        network = Network.getNetworkByName(name);
+        assertNull(network);
     }
 }
