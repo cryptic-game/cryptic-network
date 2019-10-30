@@ -6,6 +6,7 @@ import net.cryptic_game.microservice.model.Model;
 import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +18,9 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -26,6 +30,7 @@ import static org.junit.Assert.*;
 public class MemberTest {
 
     private List<Member> members;
+    private List<Network> networks;
 
     @Mock
     private MicroService microService;
@@ -38,6 +43,18 @@ public class MemberTest {
 
     @Mock
     private Session session;
+
+    @Mock
+    private CriteriaBuilder criteriaBuilder;
+
+    @Mock
+    private CriteriaQuery<Member> criteriaQuery;
+
+    @Mock
+    private Root<Member> root;
+
+    @Mock
+    private Query<Member> typedQuery;
 
     @Before
     public void setUp() {
@@ -63,6 +80,27 @@ public class MemberTest {
             }
             return null;
         });
+
+        PowerMockito.when(session.save(Mockito.any(Network.class))).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            networks.add(invocationOnMock.getArgument(0));
+            return null;
+        });
+
+        PowerMockito.when(session.get(Mockito.eq(Network.class), Mockito.any(UUID.class))).then((InvocationOnMock invocationOnMock) -> {
+            UUID network = invocationOnMock.getArgument(1);
+
+            for (Network all : networks) {
+                if(all.getUUID().equals(network)) {
+                    return all;
+                }
+            }
+            return null;
+        });
+
+        PowerMockito.when(session.getCriteriaBuilder()).thenReturn(criteriaBuilder);
+        PowerMockito.when(criteriaBuilder.createQuery(Member.class)).thenReturn(criteriaQuery);
+        PowerMockito.when(criteriaQuery.from(Member.class)).thenReturn(root);
+        PowerMockito.when(session.createQuery(criteriaQuery)).thenReturn(typedQuery);
 
         PowerMockito.mockStatic(MicroService.class);
         PowerMockito.when(MicroService.getInstance()).thenReturn(microService);
@@ -118,5 +156,80 @@ public class MemberTest {
 
         assertEquals(device, member.getDevice());
         assertEquals(network, member.getNetwork());
+    }
+
+    @Test
+    public void getNetworksTest() {
+        members = new ArrayList<>();
+        networks = new ArrayList<>();
+
+        UUID device = UUID.randomUUID();
+
+        Mockito.when(typedQuery.getResultList()).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            List<Member> returnMembers = new ArrayList<>();
+            for(Member all : members) {
+                if(all.getDevice().equals(device)) {
+                    returnMembers.add(all);
+                }
+            }
+            return returnMembers;
+        });
+
+        Network network = Network.create(device, "network", true);
+
+        List<Network> networkList = Member.getNetworks(device);
+
+        assertEquals(1, networkList.size());
+        assertEquals(network.getUUID(), networkList.get(0).getUUID());
+    }
+
+    @Test
+    public void getMembersTest() {
+        members = new ArrayList<>();
+        networks = new ArrayList<>();
+
+        UUID device = UUID.randomUUID();
+        Network network = Network.create(device, "network", true);
+
+        Mockito.when(typedQuery.getResultList()).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            List<Member> returnMembers = new ArrayList<>();
+            for(Member all : members) {
+                if(all.getNetwork().equals(network.getUUID())) {
+                    returnMembers.add(all);
+                }
+            }
+            return returnMembers;
+        });
+
+        List<Member> memberList = Member.getMembers(network.getUUID());
+
+        assertEquals(1, memberList.size());
+        assertEquals(network.getUUID(), memberList.get(0).getNetwork());
+    }
+
+    @Test
+    public void getMembershipOfUserTest() {
+        members = new ArrayList<>();
+
+        UUID user = UUID.randomUUID();
+        PowerMockito.when(microService.contactMicroService(Mockito.eq("device"), Mockito.eq(new String[]{"owner"}), Mockito.any()))
+                .thenReturn(JSONBuilder.anJSON().add("owner", user.toString()).build());
+
+        Mockito.when(typedQuery.getResultList()).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            List<Member> userMembers = new ArrayList<>();
+            for(Member all : members) {
+                if(all.getUser().equals(user)) {
+                    userMembers.add(all);
+                }
+            }
+            return userMembers;
+        });
+
+        Member.create(UUID.randomUUID(), UUID.randomUUID());
+
+        List<Member> memberList = Member.getMembershipsOfUser(user);
+
+        assertEquals(1, memberList.size());
+        assertEquals(user, memberList.get(0).getUser());
     }
 }
