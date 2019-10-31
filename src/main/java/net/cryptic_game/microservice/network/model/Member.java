@@ -30,7 +30,7 @@ public class Member extends Model {
     @Type(type = "uuid-char")
     private UUID network;
 
-    protected Member(UUID uuid, UUID device, UUID user, UUID network) {
+    public Member(UUID uuid, UUID device, UUID user, UUID network) {
         this.uuid = uuid;
         this.device = device;
         this.user = user;

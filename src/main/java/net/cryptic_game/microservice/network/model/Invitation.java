@@ -30,7 +30,7 @@ public class Invitation extends Model {
     private UUID network;
     private boolean request;
 
-    protected Invitation(UUID uuid, UUID device, UUID user, UUID network, boolean request) {
+    public Invitation(UUID uuid, UUID device, UUID user, UUID network, boolean request) {
         this.uuid = uuid;
         this.device = device;
         this.user = user;

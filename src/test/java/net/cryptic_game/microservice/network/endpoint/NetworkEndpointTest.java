@@ -1,6 +1,8 @@
 package net.cryptic_game.microservice.network.endpoint;
 
 import net.cryptic_game.microservice.network.communication.Device;
+import net.cryptic_game.microservice.network.model.Invitation;
+import net.cryptic_game.microservice.network.model.Member;
 import net.cryptic_game.microservice.network.model.Network;
 import net.cryptic_game.microservice.utils.JSON;
 import net.cryptic_game.microservice.utils.JSONBuilder;
@@ -10,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -23,19 +26,39 @@ import java.util.UUID;
 import static org.junit.Assert.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({Network.class, Device.class})
+@PrepareForTest({Network.class, Device.class, Member.class, Invitation.class})
 public class NetworkEndpointTest {
 
     private Random rand;
     private List<Network> networks;
+    private List<Member> members;
+    private List<Invitation> invitations;
+
+    @Mock
+    private Network network;
+
+    @Mock
+    private Member member;
+
+    @Mock
+    private Invitation invitation;
+
+    @Mock
+    private Member networkMember;
 
     @Before
     public void setUp() {
         rand = new Random();
         networks = new ArrayList<>();
+        members = new ArrayList<>();
+        invitations = new ArrayList<>();
+
+        MockitoAnnotations.initMocks(this);
 
         PowerMockito.mockStatic(Network.class);
         PowerMockito.mockStatic(Device.class);
+        PowerMockito.mockStatic(Member.class);
+        PowerMockito.mockStatic(Invitation.class);
     }
 
     @Test
@@ -81,7 +104,7 @@ public class NetworkEndpointTest {
         assertEquals(network.serialize(), NetworkEndpoint.getByUUID(new JSON(JSONBuilder.anJSON().add("uuid", uuid.toString()).build()), UUID.randomUUID()));
 
         assertEquals(JSONBuilder.anJSON().add("error", "network_not_found").build(),
-                NetworkEndpoint.getByName(new JSON(JSONBuilder.anJSON().add("uuid", UUID.randomUUID().toString()).build()), UUID.randomUUID()));
+                NetworkEndpoint.getByUUID(new JSON(JSONBuilder.anJSON().add("uuid", UUID.randomUUID().toString()).build()), UUID.randomUUID()));
     }
 
     @Test
@@ -145,7 +168,7 @@ public class NetworkEndpointTest {
         json = new JSON(JSONBuilder.anJSON().add("device", device.toString()).add("name", "net").add("hidden", hidden).build());
         networks = new ArrayList<>();
 
-        PowerMockito.when(Network.getNetworks(Mockito.any())).thenReturn(new ArrayList<Network>());
+        PowerMockito.when(Network.getNetworks(Mockito.any())).thenReturn(new ArrayList<>());
 
         jsonObject = NetworkEndpoint.create(json, UUID.randomUUID());
         assertEquals(JSONBuilder.anJSON().add("error", "invalid_name").build(), jsonObject);
@@ -161,5 +184,171 @@ public class NetworkEndpointTest {
         PowerMockito.when(Device.checkPermissions(Mockito.any(), Mockito.any())).thenReturn(false);
         jsonObject = NetworkEndpoint.create(json, UUID.randomUUID());
         assertEquals(JSONBuilder.anJSON().add("error", "no_permissions").build(), jsonObject);
+    }
+
+    @Test
+    public void checkTest() {
+        networks = new ArrayList<>();
+        members = new ArrayList<>();
+
+        UUID source = UUID.randomUUID();
+        UUID destination = UUID.randomUUID();
+        UUID network = UUID.randomUUID();
+
+        networks.add(new Network(network, UUID.randomUUID(), UUID.randomUUID(), rand.nextBoolean(), "network_" + rand.nextInt(100)));
+
+        members.add(new Member(UUID.randomUUID(), source, UUID.randomUUID(), network));
+        members.add(new Member(UUID.randomUUID(), destination, UUID.randomUUID(), network));
+
+        PowerMockito.when(Network.get(Mockito.any())).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            for (Network all : networks) {
+                if (all.getUUID().equals(invocationOnMock.getArgument(0))) {
+                    return all;
+                }
+            }
+
+            return null;
+        });
+
+        PowerMockito.when(Member.getNetworks(Mockito.any())).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            List<Network> returnNetworks = new ArrayList<>();
+            for (Member all : members) {
+                if (all.getDevice().equals(invocationOnMock.getArgument(0))) {
+                    returnNetworks.add(Network.get(all.getNetwork()));
+                }
+            }
+
+            return returnNetworks;
+        });
+
+        PowerMockito.when(Member.getMembers(Mockito.any())).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            List<Member> returnMembers = new ArrayList<>();
+            for (Member all : members) {
+                if (all.getNetwork().equals(invocationOnMock.getArgument(0))) {
+                    returnMembers.add(all);
+                }
+            }
+
+            return returnMembers;
+        });
+
+        JSON data = new JSON(JSONBuilder.anJSON().add("source", source.toString()).add("destination", destination.toString()).build());
+
+        assertEquals(JSONBuilder.anJSON().add("connected", true).build(), NetworkEndpoint.check(data, "ms"));
+
+        members.remove(1);
+        assertEquals(JSONBuilder.anJSON().add("connected", false).build(), NetworkEndpoint.check(data, "ms"));
+    }
+
+    @Test
+    public void membersTest() {
+        networks = new ArrayList<>();
+        members = new ArrayList<>();
+
+        UUID network = UUID.randomUUID();
+
+        networks.add(new Network(network, UUID.randomUUID(), UUID.randomUUID(), rand.nextBoolean(), "network_" + rand.nextInt(100)));
+
+        members.add(new Member(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), network));
+        members.add(new Member(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), network));
+
+        PowerMockito.when(Network.get(Mockito.any())).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            for (Network all : networks) {
+                if (all.getUUID().equals(invocationOnMock.getArgument(0))) {
+                    return all;
+                }
+            }
+
+            return null;
+        });
+
+        PowerMockito.when(Member.getMembers(Mockito.any())).thenAnswer((InvocationOnMock invocationOnMock) -> {
+            List<Member> returnMembers = new ArrayList<>();
+            for (Member all : members) {
+                if (all.getNetwork().equals(invocationOnMock.getArgument(0))) {
+                    returnMembers.add(all);
+                }
+            }
+
+            return returnMembers;
+        });
+
+        PowerMockito.when(Device.checkPermissions(Mockito.any(), Mockito.any())).thenReturn(true);
+
+        JSON data = new JSON(JSONBuilder.anJSON().add("uuid", network.toString()).build());
+
+        JSONObject json = NetworkEndpoint.members(data, UUID.randomUUID());
+
+        assertTrue(json.containsKey("members"));
+        List<JSONObject> memberList = (List<JSONObject>) json.get("members");
+
+        assertEquals(2, memberList.size());
+
+        members.clear();
+
+        json = NetworkEndpoint.members(data, UUID.randomUUID());
+
+        assertTrue(json.containsKey("members"));
+        memberList = (List<JSONObject>) json.get("members");
+
+        assertEquals(0, memberList.size());
+
+        PowerMockito.when(Device.checkPermissions(Mockito.any(), Mockito.any())).thenReturn(false);
+        assertEquals(JSONBuilder.anJSON().add("error", "network_not_found").build(), NetworkEndpoint.members(data, UUID.randomUUID()));
+
+        PowerMockito.when(Device.checkPermissions(Mockito.any(), Mockito.any())).thenReturn(true);
+        networks.clear();
+
+        assertEquals(JSONBuilder.anJSON().add("error", "network_not_found").build(), NetworkEndpoint.members(data, UUID.randomUUID()));
+    }
+
+    @Test
+    public void deleteUserTest() throws Exception {
+        networks = new ArrayList<>();
+        members = new ArrayList<>();
+        invitations = new ArrayList<>();
+
+        List<Member> networkMembers = new ArrayList<>();
+
+        UUID user = UUID.randomUUID();
+
+        networks.add(network);
+        members.add(member);
+        invitations.add(invitation);
+        networkMembers.add(networkMember);
+
+        PowerMockito.when(Network.getNetworksOfUser(user)).thenReturn(new ArrayList<>(networks));
+        PowerMockito.when(Member.getMembershipsOfUser(user)).thenReturn(new ArrayList<>(members));
+        PowerMockito.when(Invitation.getInvitationsOfUser(user)).thenReturn(new ArrayList<>(invitations));
+        PowerMockito.when(Member.getMembers(Mockito.any())).thenReturn(new ArrayList<>(networkMembers));
+
+
+        PowerMockito.when(network, "delete").thenAnswer((InvocationOnMock invocationOnMock) -> {
+            networks.remove(network);
+            return null;
+        });
+
+        PowerMockito.when(member, "delete").thenAnswer((InvocationOnMock invocationOnMock) -> {
+            members.remove(member);
+            return null;
+        });
+
+        PowerMockito.when(invitation, "delete").thenAnswer((InvocationOnMock invocationOnMock) -> {
+            invitations.remove(invitation);
+            return null;
+        });
+
+        PowerMockito.when(networkMember, "delete").thenAnswer((InvocationOnMock invocationOnMock) -> {
+            networkMembers.remove(networkMember);
+            return null;
+        });
+
+        JSON data = new JSON(JSONBuilder.anJSON().add("user_uuid", user.toString()).build());
+        NetworkEndpoint.deleteUser(data, "ms");
+
+        assertEquals(0, networks.size());
+        assertEquals(0, members.size());
+        assertEquals(0, invitations.size());
+        assertEquals(0, networkMembers.size());
     }
 }
