@@ -30,7 +30,7 @@ public class Network extends Model {
     private boolean hidden;
     private String name;
 
-    private Network(UUID uuid, UUID owner, UUID user, boolean hidden, String name) {
+    public Network(UUID uuid, UUID owner, UUID user, boolean hidden, String name) {
         this.uuid = uuid;
         this.owner = owner;
         this.user = user;
@@ -54,16 +54,6 @@ public class Network extends Model {
 
     public String getName() {
         return name;
-    }
-
-    public void update() {
-        Session session = Database.getInstance().openSession();
-        session.beginTransaction();
-
-        session.save(this);
-
-        session.getTransaction().commit();
-        session.close();
     }
 
     public Member addMember(UUID member) {
