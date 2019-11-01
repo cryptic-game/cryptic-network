@@ -133,6 +133,25 @@ public class NetworkOwnerEndpoint {
         return simple("requests", invitations);
     }
 
+    @UserEndpoint(path = {"invitations", "network"}, keys = {"uuid"}, types = {String.class})
+    public static JSONObject invitationsNetwork(JSON data, UUID user) {
+        UUID uuid = data.getUUID("uuid");
+
+        Network network = Network.get(uuid);
+
+        if (network == null || !Device.checkPermissions(network.getOwner(), user)) {
+            return error("no_permissions");
+        }
+
+        List<JSONObject> invitations = new ArrayList<>();
+
+        for (Invitation invitation : Invitation.getInvitationsOfNetwork(uuid, false)) {
+            invitations.add(invitation.serialize());
+        }
+
+        return simple("invitations", invitations);
+    }
+
     @UserEndpoint(path = {"kick"}, keys = {"uuid", "device"}, types = {String.class, String.class})
     public static JSONObject kick(JSON data, UUID user) {
         UUID uuid = data.getUUID("uuid");

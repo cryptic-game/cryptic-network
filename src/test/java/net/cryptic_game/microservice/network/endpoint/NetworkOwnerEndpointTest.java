@@ -273,6 +273,31 @@ public class NetworkOwnerEndpointTest {
     }
 
     @Test
+    public void invitationsTest() {
+        networks = new ArrayList<>();
+        invitations = new ArrayList<>();
+
+        UUID network = UUID.randomUUID();
+
+        JSON data = new JSON(JSONBuilder.anJSON().add("uuid", network.toString()).build());
+
+        assertEquals(JSONBuilder.anJSON().add("error", "no_permissions").build(), NetworkOwnerEndpoint.invitationsNetwork(data, UUID.randomUUID()));
+
+        networks.add(new Network(network, UUID.randomUUID(), UUID.randomUUID(), rand.nextBoolean(), "network_" + rand.nextInt(100)));
+        PowerMockito.when(Device.checkPermissions(Mockito.any(), Mockito.any())).thenReturn(false);
+
+        assertEquals(JSONBuilder.anJSON().add("error", "no_permissions").build(), NetworkOwnerEndpoint.invitationsNetwork(data, UUID.randomUUID()));
+
+        invitations.add(new Invitation(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), network, false));
+        PowerMockito.when(Device.checkPermissions(Mockito.any(), Mockito.any())).thenReturn(true);
+
+        List<JSONObject> json = (List<JSONObject>) NetworkOwnerEndpoint.invitationsNetwork(data, UUID.randomUUID()).get("invitations");
+
+        assertEquals(1, json.size());
+        assertEquals(invitations.get(0).serialize(), json.get(0));
+    }
+
+    @Test
     public void kickTest() throws Exception {
         networks = new ArrayList<>();
         invitations = new ArrayList<>();
@@ -353,7 +378,7 @@ public class NetworkOwnerEndpointTest {
 
         assertEquals(JSONBuilder.anJSON().add("error", "invitation_not_found").build(), NetworkOwnerEndpoint.revoke(data, UUID.randomUUID()));
 
-        PowerMockito.when(Device.checkPermissions(Mockito.any(), Mockito.any())).thenReturn(false);;
+        PowerMockito.when(Device.checkPermissions(Mockito.any(), Mockito.any())).thenReturn(false);
         invitations.add(this.invitation);
         networks.add(new Network(network, UUID.randomUUID(), UUID.randomUUID(), rand.nextBoolean(), "network_" + rand.nextInt(100)));
         PowerMockito.when(this.invitation.getNetwork()).thenReturn(network);
