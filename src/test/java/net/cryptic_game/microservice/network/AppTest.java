@@ -33,6 +33,7 @@ public class AppTest {
                 new ArrayList<>(Collections.singletonList("accept")),
                 new ArrayList<>(Collections.singletonList("deny")),
                 new ArrayList<>(Collections.singletonList("requests")),
+                new ArrayList<>(Arrays.asList("invitations", "network")),
                 new ArrayList<>(Collections.singletonList("kick")),
                 new ArrayList<>(Collections.singletonList("delete")),
                 new ArrayList<>(Collections.singletonList("revoke"))
