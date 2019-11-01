@@ -11,6 +11,9 @@ import org.reflections.scanners.MethodAnnotationsScanner;
 import java.lang.reflect.Method;
 import java.util.*;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 public class AppTest {
 
     @Test
@@ -68,23 +71,14 @@ public class AppTest {
         }
 
         for (List<String> endpoint : userEndpoints) {
-            if (!userEndpointsMap.keySet().remove(endpoint)) {
-                throw new AssertionError("Missing user endpoint");
-            }
+            assertTrue("Missing user endpoint", userEndpointsMap.keySet().remove(endpoint));
         }
 
         for (List<String> endpoint : microServiceEndpoints) {
-            if (!microServiceEndpointsMap.keySet().remove(endpoint)) {
-                throw new AssertionError("Missing microservice endpoint");
-            }
+            assertTrue("Missing microservice endpoint", microServiceEndpointsMap.keySet().remove(endpoint));
         }
 
-        if (userEndpointsMap.keySet().size() != 0) {
-            throw new AssertionError("Too many registered user endpoints");
-        }
-
-        if (microServiceEndpointsMap.keySet().size() != 0) {
-            throw new AssertionError("Too many registered microservice endpoints");
-        }
+        assertEquals("Too many registered user endpoints", 0, userEndpointsMap.keySet().size());
+        assertEquals("Too many registered microservice endpoints", 0, microServiceEndpointsMap.keySet().size());
     }
 }
