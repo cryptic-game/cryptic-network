@@ -1,4 +1,4 @@
-# cryptic-network [![Coverage](https://sonarcloud.io/api/project_badges/measure?branch=experimental&project=cryptic-game_cryptic-network&metric=coverage)](https://sonarcloud.io/dashboard?id=cryptic-game_cryptic-network&branch=experimental)]
+# cryptic-network [![Coverage](https://sonarcloud.io/api/project_badges/measure?branch=experimental&project=cryptic-game_cryptic-network&metric=coverage)](https://sonarcloud.io/dashboard?id=cryptic-game_cryptic-network&branch=experimental)
 The network microservice of cryptic-game
  
 ## Docker-Hub
