@@ -1,6 +1,7 @@
 package net.cryptic_game.microservice.network.endpoint;
 
 import net.cryptic_game.microservice.endpoint.UserEndpoint;
+import net.cryptic_game.microservice.network.Error;
 import net.cryptic_game.microservice.network.communication.Device;
 import net.cryptic_game.microservice.network.model.Invitation;
 import net.cryptic_game.microservice.network.model.Member;
@@ -83,7 +84,7 @@ public class NetworkOwnerEndpoint {
             }
 
             if (!Device.isOnline(device)) {
-                return error("device_not_online");
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
             }
         } else {
             final UUID device = Network.get(invitation.getNetwork()).getOwner();
@@ -93,7 +94,7 @@ public class NetworkOwnerEndpoint {
             }
 
             if (!Device.isOnline(device)) {
-                return error("device_not_online");
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
             }
         }
 
@@ -120,7 +121,7 @@ public class NetworkOwnerEndpoint {
             }
 
             if (!Device.isOnline(device)) {
-                return error("device_not_online");
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
             }
         } else {
             final UUID device = invitation.getDevice();
@@ -130,7 +131,7 @@ public class NetworkOwnerEndpoint {
             }
 
             if (!Device.isOnline(device)) {
-                return error("device_not_online");
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
             }
         }
 
@@ -218,7 +219,7 @@ public class NetworkOwnerEndpoint {
         }
 
         if (!Device.isOnline(network.getOwner())) {
-            return error("device_not_online");
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
         }
 
         network.delete();
@@ -257,7 +258,7 @@ public class NetworkOwnerEndpoint {
             }
 
             if (!Device.isOnline(device)) {
-                return error("device_not_online");
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
             }
         } else {
             final UUID device = Network.get(invitation.getNetwork()).getOwner();
@@ -267,7 +268,7 @@ public class NetworkOwnerEndpoint {
             }
 
             if (!Device.isOnline(device)) {
-                return error("device_not_online");
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
             }
         }
 

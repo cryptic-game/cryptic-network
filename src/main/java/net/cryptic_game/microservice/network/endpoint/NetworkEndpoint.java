@@ -2,6 +2,7 @@ package net.cryptic_game.microservice.network.endpoint;
 
 import net.cryptic_game.microservice.endpoint.MicroServiceEndpoint;
 import net.cryptic_game.microservice.endpoint.UserEndpoint;
+import net.cryptic_game.microservice.network.Error;
 import net.cryptic_game.microservice.network.communication.Device;
 import net.cryptic_game.microservice.network.model.Invitation;
 import net.cryptic_game.microservice.network.model.Member;
@@ -65,7 +66,7 @@ public class NetworkEndpoint {
         if (Device.checkPermissions(device, user)) {
 
             if (!Device.isOnline(device)) {
-                return error("device_not_online");
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
             }
 
             int count = Network.getNetworks(device).size();
