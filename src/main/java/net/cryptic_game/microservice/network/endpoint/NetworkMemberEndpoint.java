@@ -44,6 +44,10 @@ public class NetworkMemberEndpoint {
 
         if (Device.checkPermissions(device, user)) {
 
+            if (!Device.isOnline(device)) {
+                return error("device_not_online");
+            }
+
             if (network.getOwner().equals(device)) {
                 return error("already_member_of_network");
             }
@@ -56,8 +60,8 @@ public class NetworkMemberEndpoint {
             }
 
             List<Invitation> invitations = Invitation.getInvitationsOfDevice(device, true);
-            for(Invitation inv : invitations) {
-                if(inv.getNetwork().equals(uuid)) {
+            for (Invitation inv : invitations) {
+                if (inv.getNetwork().equals(uuid)) {
                     return error("invitation_already_exists");
                 }
             }
@@ -78,6 +82,10 @@ public class NetworkMemberEndpoint {
             return error("no_permissions");
         }
 
+        if (!Device.isOnline(device)) {
+            return error("device_not_online");
+        }
+
         List<JSONObject> invitations = new ArrayList<>();
 
         for (Invitation invitation : Invitation.getInvitationsOfDevice(device, false)) {
@@ -96,6 +104,10 @@ public class NetworkMemberEndpoint {
 
         if (network == null || !Device.checkPermissions(device, user)) {
             return error("no_permissions");
+        }
+
+        if (!Device.isOnline(device)) {
+            return error("device_not_online");
         }
 
         if (network.getOwner().equals(device)) {

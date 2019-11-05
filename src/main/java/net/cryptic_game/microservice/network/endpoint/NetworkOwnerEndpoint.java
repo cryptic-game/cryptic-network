@@ -54,8 +54,8 @@ public class NetworkOwnerEndpoint {
         }
 
         List<Invitation> invitations = Invitation.getInvitationsOfDevice(device, false);
-        for(Invitation inv : invitations) {
-            if(inv.getNetwork().equals(uuid)) {
+        for (Invitation inv : invitations) {
+            if (inv.getNetwork().equals(uuid)) {
                 return error("invitation_already_exists");
             }
         }
@@ -76,12 +76,24 @@ public class NetworkOwnerEndpoint {
         }
 
         if (!invitation.isRequest()) {
-            if (!Device.checkPermissions(invitation.getDevice(), user)) {
+            final UUID device = invitation.getDevice();
+
+            if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
             }
+
+            if (!Device.isOnline(device)) {
+                return error("device_not_online");
+            }
         } else {
-            if (!Device.checkPermissions(Network.get(invitation.getNetwork()).getOwner(), user)) {
+            final UUID device = Network.get(invitation.getNetwork()).getOwner();
+
+            if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
+            }
+
+            if (!Device.isOnline(device)) {
+                return error("device_not_online");
             }
         }
 
@@ -101,14 +113,27 @@ public class NetworkOwnerEndpoint {
         }
 
         if (invitation.isRequest()) {
-            if (!Device.checkPermissions(Network.get(invitation.getNetwork()).getOwner(), user)) {
+            final UUID device = Network.get(invitation.getNetwork()).getOwner();
+
+            if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
+            }
+
+            if (!Device.isOnline(device)) {
+                return error("device_not_online");
             }
         } else {
-            if (!Device.checkPermissions(invitation.getDevice(), user)) {
+            final UUID device = invitation.getDevice();
+
+            if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
             }
+
+            if (!Device.isOnline(device)) {
+                return error("device_not_online");
+            }
         }
+
         invitation.deny();
 
         return simple("result", true);
@@ -163,6 +188,10 @@ public class NetworkOwnerEndpoint {
             return error("no_permissions");
         }
 
+        if (!Device.isOnline(network.getOwner())) {
+            return error("device_not_online");
+        }
+
         if (network.getOwner().equals(device)) {
             return error("cannot_kick_owner");
         }
@@ -188,18 +217,22 @@ public class NetworkOwnerEndpoint {
             return error("network_not_found");
         }
 
+        if (!Device.isOnline(network.getOwner())) {
+            return error("device_not_online");
+        }
+
         network.delete();
 
         List<Member> members = Member.getMembers(uuid);
 
-        for(Member member : members) {
+        for (Member member : members) {
             member.delete();
         }
 
         List<Invitation> invitations = Invitation.getInvitationsOfNetwork(uuid, true);
         invitations.addAll(Invitation.getInvitationsOfNetwork(uuid, false));
 
-        for(Invitation invitation : invitations) {
+        for (Invitation invitation : invitations) {
             invitation.delete();
         }
 
@@ -217,12 +250,24 @@ public class NetworkOwnerEndpoint {
         }
 
         if (invitation.isRequest()) {
-            if (!Device.checkPermissions(invitation.getDevice(), user)) {
+            final UUID device = invitation.getDevice();
+
+            if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
             }
+
+            if (!Device.isOnline(device)) {
+                return error("device_not_online");
+            }
         } else {
-            if (!Device.checkPermissions(Network.get(invitation.getNetwork()).getOwner(), user)) {
+            final UUID device = Network.get(invitation.getNetwork()).getOwner();
+
+            if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
+            }
+
+            if (!Device.isOnline(device)) {
+                return error("device_not_online");
             }
         }
 

@@ -23,7 +23,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({Network.class, Device.class, Member.class, Invitation.class})
@@ -66,8 +67,8 @@ public class NetworkEndpointTest {
         networks = new ArrayList<>();
 
         PowerMockito.when(Network.getNetworkByName(Mockito.anyString())).thenAnswer((InvocationOnMock invocationOnMock) -> {
-            for(Network all : networks) {
-                if(all.getName().equals(invocationOnMock.getArgument(0))) {
+            for (Network all : networks) {
+                if (all.getName().equals(invocationOnMock.getArgument(0))) {
                     return all;
                 }
             }
@@ -89,8 +90,8 @@ public class NetworkEndpointTest {
         networks = new ArrayList<>();
 
         PowerMockito.when(Network.get(Mockito.any())).thenAnswer((InvocationOnMock invocationOnMock) -> {
-            for(Network all : networks) {
-                if(all.getUUID().equals(invocationOnMock.getArgument(0))) {
+            for (Network all : networks) {
+                if (all.getUUID().equals(invocationOnMock.getArgument(0))) {
                     return all;
                 }
             }
@@ -113,8 +114,8 @@ public class NetworkEndpointTest {
 
         PowerMockito.when(Network.getPublicNetworks()).thenAnswer((InvocationOnMock invocationOnMock) -> {
             List<Network> publicNetworks = new ArrayList<>();
-            for(Network all : networks) {
-                if(!all.isHidden()) {
+            for (Network all : networks) {
+                if (!all.isHidden()) {
                     publicNetworks.add(all);
                 }
             }
@@ -140,6 +141,7 @@ public class NetworkEndpointTest {
         networks = new ArrayList<>();
 
         PowerMockito.when(Device.checkPermissions(Mockito.any(), Mockito.any())).thenReturn(true);
+        PowerMockito.when(Device.isOnline(Mockito.any())).thenReturn(true);
         PowerMockito.when(Network.checkName(Mockito.anyString())).thenCallRealMethod();
         PowerMockito.when(Network.create(Mockito.any(), Mockito.anyString(), Mockito.anyBoolean())).thenAnswer((InvocationOnMock invocationOnMock) -> {
             Network network = new Network(UUID.randomUUID(), invocationOnMock.getArgument(0), UUID.randomUUID(), invocationOnMock.getArgument(2), invocationOnMock.getArgument(1));
@@ -161,6 +163,11 @@ public class NetworkEndpointTest {
         networkList.add(new Network());
         networkList.add(new Network());
         PowerMockito.when(Network.getNetworks(Mockito.any())).thenReturn(networkList);
+
+        PowerMockito.when(Device.isOnline(Mockito.any())).thenReturn(false);
+        jsonObject = NetworkEndpoint.create(json, UUID.randomUUID());
+        assertEquals(JSONBuilder.anJSON().add("error", "device_not_online").build(), jsonObject);
+        PowerMockito.when(Device.isOnline(Mockito.any())).thenReturn(true);
 
         jsonObject = NetworkEndpoint.create(json, UUID.randomUUID());
         assertEquals(JSONBuilder.anJSON().add("error", "maximum_networks_reached").build(), jsonObject);

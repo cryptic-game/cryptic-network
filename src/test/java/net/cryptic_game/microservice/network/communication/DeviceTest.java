@@ -15,6 +15,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.UUID;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(PowerMockRunner.class)
@@ -44,5 +45,18 @@ public class DeviceTest {
                 .thenAnswer((InvocationOnMock invocationOnMock) -> JSONBuilder.anJSON().add("ok", true).build());
 
         assertTrue(Device.checkPermissions(UUID.randomUUID(), user));
+    }
+
+    @Test
+    public void testIsOnline() {
+        PowerMockito.when(microService.contactMicroService(Mockito.eq("device"), Mockito.any(), Mockito.any()))
+                .thenAnswer((InvocationOnMock invocationOnMock) -> JSONBuilder.anJSON().add("online", true).build());
+
+        assertTrue(Device.isOnline(UUID.randomUUID()));
+
+        PowerMockito.when(microService.contactMicroService(Mockito.eq("device"), Mockito.any(), Mockito.any()))
+                .thenAnswer((InvocationOnMock invocationOnMock) -> JSONBuilder.anJSON().add("error", "device_not_found").build());
+
+        assertFalse(Device.isOnline(UUID.randomUUID()));
     }
 }

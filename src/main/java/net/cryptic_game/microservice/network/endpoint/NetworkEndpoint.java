@@ -64,6 +64,10 @@ public class NetworkEndpoint {
 
         if (Device.checkPermissions(device, user)) {
 
+            if (!Device.isOnline(device)) {
+                return error("device_not_online");
+            }
+
             int count = Network.getNetworks(device).size();
 
             if (count >= 2) { // maximum 2 networks ownership per device

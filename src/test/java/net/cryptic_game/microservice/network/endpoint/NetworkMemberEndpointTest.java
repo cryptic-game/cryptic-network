@@ -53,7 +53,7 @@ public class NetworkMemberEndpointTest {
 
         PowerMockito.when(Network.get(Mockito.any())).thenAnswer((InvocationOnMock invocationOnMock) -> {
             for (Network all : networks) {
-                if(all.getUUID().equals(invocationOnMock.getArgument(0))) {
+                if (all.getUUID().equals(invocationOnMock.getArgument(0))) {
                     return all;
                 }
             }
@@ -65,7 +65,7 @@ public class NetworkMemberEndpointTest {
             List<Network> returnNetworks = new ArrayList<>();
 
             for (Member all : members) {
-                if(all.getDevice().equals(invocationOnMock.getArgument(0))) {
+                if (all.getDevice().equals(invocationOnMock.getArgument(0))) {
                     returnNetworks.add(Network.get(all.getNetwork()));
                 }
             }
@@ -109,6 +109,10 @@ public class NetworkMemberEndpointTest {
         assertEquals(JSONBuilder.anJSON().add("error", "no_permissions").build(), NetworkMemberEndpoint.request(data, UUID.randomUUID()));
 
         PowerMockito.when(Device.checkPermissions(Mockito.any(), Mockito.any())).thenReturn(true);
+        PowerMockito.when(Device.isOnline(Mockito.any())).thenReturn(false);
+        assertEquals(JSONBuilder.anJSON().add("error", "device_not_online").build(), NetworkMemberEndpoint.request(data, UUID.randomUUID()));
+        PowerMockito.when(Device.isOnline(Mockito.any())).thenReturn(true);
+
         assertEquals(JSONBuilder.anJSON().add("error", "already_member_of_network").build(), NetworkMemberEndpoint.request(data, UUID.randomUUID()));
 
         networks.clear();
@@ -118,7 +122,7 @@ public class NetworkMemberEndpointTest {
             List<Member> returnMembers = new ArrayList<>();
 
             for (Member all : members) {
-                if(all.getNetwork().equals(invocationOnMock.getArgument(0))) {
+                if (all.getNetwork().equals(invocationOnMock.getArgument(0))) {
                     returnMembers.add(all);
                 }
             }
@@ -135,7 +139,7 @@ public class NetworkMemberEndpointTest {
 
             for (Invitation all : invitations) {
                 if (all.getDevice().equals(invocationOnMock.getArgument(0))) {
-                   returnInvitations.add(all);
+                    returnInvitations.add(all);
                 }
             }
 
@@ -173,6 +177,11 @@ public class NetworkMemberEndpointTest {
 
         assertEquals(JSONBuilder.anJSON().add("error", "no_permissions").build(), NetworkMemberEndpoint.invitations(data, UUID.randomUUID()));
 
+        PowerMockito.when(Device.checkPermissions(Mockito.any(), Mockito.any())).thenReturn(true);
+        PowerMockito.when(Device.isOnline(Mockito.any())).thenReturn(false);
+        assertEquals(JSONBuilder.anJSON().add("error", "device_not_online").build(), NetworkMemberEndpoint.invitations(data, UUID.randomUUID()));
+        PowerMockito.when(Device.isOnline(Mockito.any())).thenReturn(true);
+
         invitations.add(new Invitation(UUID.randomUUID(), device, UUID.randomUUID(), UUID.randomUUID(), false));
 
         PowerMockito.when(Device.checkPermissions(Mockito.any(), Mockito.any())).thenReturn(true);
@@ -209,7 +218,7 @@ public class NetworkMemberEndpointTest {
 
         PowerMockito.when(Network.get(Mockito.any())).thenAnswer((InvocationOnMock invocationOnMock) -> {
             for (Network all : networks) {
-                if(all.getUUID().equals(invocationOnMock.getArgument(0))) {
+                if (all.getUUID().equals(invocationOnMock.getArgument(0))) {
                     return all;
                 }
             }
@@ -226,6 +235,10 @@ public class NetworkMemberEndpointTest {
         assertEquals(JSONBuilder.anJSON().add("error", "no_permissions").build(), NetworkMemberEndpoint.leave(data, UUID.randomUUID()));
 
         PowerMockito.when(Device.checkPermissions(Mockito.any(), Mockito.any())).thenReturn(true);
+
+        PowerMockito.when(Device.isOnline(Mockito.any())).thenReturn(false);
+        assertEquals(JSONBuilder.anJSON().add("error", "device_not_online").build(), NetworkMemberEndpoint.leave(data, UUID.randomUUID()));
+        PowerMockito.when(Device.isOnline(Mockito.any())).thenReturn(true);
 
         assertEquals(JSONBuilder.anJSON().add("error", "cannot_leave_own_network").build(), NetworkMemberEndpoint.leave(data, UUID.randomUUID()));
 
