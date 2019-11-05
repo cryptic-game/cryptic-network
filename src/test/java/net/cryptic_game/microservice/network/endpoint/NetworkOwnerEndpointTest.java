@@ -205,12 +205,10 @@ public class NetworkOwnerEndpointTest {
 
         PowerMockito.when(Device.isOnline(Mockito.any())).thenReturn(false);
 
-        invitations.clear();
-        invitations.add(new Invitation(invitation, UUID.randomUUID(), UUID.randomUUID(), networks.get(0).getUUID(), true));
+        PowerMockito.when(this.invitation.isRequest()).thenReturn(true);
         assertEquals(JSONBuilder.anJSON().add("error", "device_not_online").build(), NetworkOwnerEndpoint.accept(data, UUID.randomUUID()));
 
-        invitations.clear();
-        invitations.add(new Invitation(invitation, UUID.randomUUID(), UUID.randomUUID(), networks.get(0).getUUID(), true));
+        PowerMockito.when(this.invitation.isRequest()).thenReturn(false);
         assertEquals(JSONBuilder.anJSON().add("error", "device_not_online").build(), NetworkOwnerEndpoint.accept(data, UUID.randomUUID()));
 
         PowerMockito.when(Device.isOnline(Mockito.any())).thenReturn(true);
