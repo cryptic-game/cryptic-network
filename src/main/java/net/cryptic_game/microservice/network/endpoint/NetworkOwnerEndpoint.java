@@ -250,8 +250,8 @@ public class NetworkOwnerEndpoint {
             return error("invitation_not_found");
         }
 
-        if (invitation.isRequest()) {
-            final UUID device = invitation.getDevice();
+        if (!invitation.isRequest()) {
+            final UUID device = Network.get(invitation.getNetwork()).getOwner();
 
             if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
@@ -261,7 +261,7 @@ public class NetworkOwnerEndpoint {
                 return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
             }
         } else {
-            final UUID device = Network.get(invitation.getNetwork()).getOwner();
+            final UUID device = invitation.getDevice();
 
             if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
