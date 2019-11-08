@@ -1,6 +1,7 @@
 package net.cryptic_game.microservice.network.endpoint;
 
 import net.cryptic_game.microservice.endpoint.UserEndpoint;
+import net.cryptic_game.microservice.network.Error;
 import net.cryptic_game.microservice.network.communication.Device;
 import net.cryptic_game.microservice.network.model.Invitation;
 import net.cryptic_game.microservice.network.model.Member;
@@ -20,6 +21,10 @@ public class NetworkMemberEndpoint {
     @UserEndpoint(path = {"member"}, keys = {"device"}, types = {String.class})
     public static JSONObject getAll(JSON data, UUID user) {
         UUID device = data.getUUID("device");
+
+        if (!Device.isOnline(device)) {
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+        }
 
         List<Network> networks = Member.getNetworks(device);
 
@@ -44,6 +49,10 @@ public class NetworkMemberEndpoint {
 
         if (Device.checkPermissions(device, user)) {
 
+            if (!Device.isOnline(device)) {
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+            }
+
             if (network.getOwner().equals(device)) {
                 return error("already_member_of_network");
             }
@@ -56,8 +65,8 @@ public class NetworkMemberEndpoint {
             }
 
             List<Invitation> invitations = Invitation.getInvitationsOfDevice(device, true);
-            for(Invitation inv : invitations) {
-                if(inv.getNetwork().equals(uuid)) {
+            for (Invitation inv : invitations) {
+                if (inv.getNetwork().equals(uuid)) {
                     return error("invitation_already_exists");
                 }
             }
@@ -78,6 +87,10 @@ public class NetworkMemberEndpoint {
             return error("no_permissions");
         }
 
+        if (!Device.isOnline(device)) {
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+        }
+
         List<JSONObject> invitations = new ArrayList<>();
 
         for (Invitation invitation : Invitation.getInvitationsOfDevice(device, false)) {
@@ -96,6 +109,10 @@ public class NetworkMemberEndpoint {
 
         if (network == null || !Device.checkPermissions(device, user)) {
             return error("no_permissions");
+        }
+
+        if (!Device.isOnline(device)) {
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
         }
 
         if (network.getOwner().equals(device)) {

@@ -1,6 +1,7 @@
 package net.cryptic_game.microservice.network.endpoint;
 
 import net.cryptic_game.microservice.endpoint.UserEndpoint;
+import net.cryptic_game.microservice.network.Error;
 import net.cryptic_game.microservice.network.communication.Device;
 import net.cryptic_game.microservice.network.model.Invitation;
 import net.cryptic_game.microservice.network.model.Member;
@@ -21,6 +22,10 @@ public class NetworkOwnerEndpoint {
     public static JSONObject getAll(JSON data, UUID user) {
         UUID device = data.getUUID("device");
 
+        if (!Device.isOnline(device)) {
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+        }
+
         List<Network> networks = Network.getNetworks(device);
 
         List<JSONObject> jsonNetworks = new ArrayList<>();
@@ -35,6 +40,10 @@ public class NetworkOwnerEndpoint {
     public static JSONObject invite(JSON data, UUID user) {
         UUID uuid = data.getUUID("uuid");
         UUID device = data.getUUID("device");
+
+        if (!Device.isOnline(device)) {
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+        }
 
         Network network = Network.get(uuid);
 
@@ -54,8 +63,8 @@ public class NetworkOwnerEndpoint {
         }
 
         List<Invitation> invitations = Invitation.getInvitationsOfDevice(device, false);
-        for(Invitation inv : invitations) {
-            if(inv.getNetwork().equals(uuid)) {
+        for (Invitation inv : invitations) {
+            if (inv.getNetwork().equals(uuid)) {
                 return error("invitation_already_exists");
             }
         }
@@ -76,12 +85,24 @@ public class NetworkOwnerEndpoint {
         }
 
         if (!invitation.isRequest()) {
-            if (!Device.checkPermissions(invitation.getDevice(), user)) {
+            final UUID device = invitation.getDevice();
+
+            if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
             }
+
+            if (!Device.isOnline(device)) {
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+            }
         } else {
-            if (!Device.checkPermissions(Network.get(invitation.getNetwork()).getOwner(), user)) {
+            final UUID device = Network.get(invitation.getNetwork()).getOwner();
+
+            if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
+            }
+
+            if (!Device.isOnline(device)) {
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
             }
         }
 
@@ -101,14 +122,27 @@ public class NetworkOwnerEndpoint {
         }
 
         if (invitation.isRequest()) {
-            if (!Device.checkPermissions(Network.get(invitation.getNetwork()).getOwner(), user)) {
+            final UUID device = Network.get(invitation.getNetwork()).getOwner();
+
+            if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
+            }
+
+            if (!Device.isOnline(device)) {
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
             }
         } else {
-            if (!Device.checkPermissions(invitation.getDevice(), user)) {
+            final UUID device = invitation.getDevice();
+
+            if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
             }
+
+            if (!Device.isOnline(device)) {
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+            }
         }
+
         invitation.deny();
 
         return simple("result", true);
@@ -122,6 +156,10 @@ public class NetworkOwnerEndpoint {
 
         if (network == null || !Device.checkPermissions(network.getOwner(), user)) {
             return error("no_permissions");
+        }
+
+        if (!Device.isOnline(network.getOwner())) {
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
         }
 
         List<JSONObject> invitations = new ArrayList<>();
@@ -143,6 +181,10 @@ public class NetworkOwnerEndpoint {
             return error("no_permissions");
         }
 
+        if (!Device.isOnline(network.getOwner())) {
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+        }
+
         List<JSONObject> invitations = new ArrayList<>();
 
         for (Invitation invitation : Invitation.getInvitationsOfNetwork(uuid, false)) {
@@ -161,6 +203,10 @@ public class NetworkOwnerEndpoint {
 
         if (network == null || !Device.checkPermissions(network.getOwner(), user)) {
             return error("no_permissions");
+        }
+
+        if (!Device.isOnline(network.getOwner())) {
+            return error("device_not_online");
         }
 
         if (network.getOwner().equals(device)) {
@@ -188,18 +234,22 @@ public class NetworkOwnerEndpoint {
             return error("network_not_found");
         }
 
+        if (!Device.isOnline(network.getOwner())) {
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+        }
+
         network.delete();
 
         List<Member> members = Member.getMembers(uuid);
 
-        for(Member member : members) {
+        for (Member member : members) {
             member.delete();
         }
 
         List<Invitation> invitations = Invitation.getInvitationsOfNetwork(uuid, true);
         invitations.addAll(Invitation.getInvitationsOfNetwork(uuid, false));
 
-        for(Invitation invitation : invitations) {
+        for (Invitation invitation : invitations) {
             invitation.delete();
         }
 
@@ -216,13 +266,25 @@ public class NetworkOwnerEndpoint {
             return error("invitation_not_found");
         }
 
-        if (invitation.isRequest()) {
-            if (!Device.checkPermissions(invitation.getDevice(), user)) {
+        if (!invitation.isRequest()) {
+            final UUID device = Network.get(invitation.getNetwork()).getOwner();
+
+            if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
             }
+
+            if (!Device.isOnline(device)) {
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+            }
         } else {
-            if (!Device.checkPermissions(Network.get(invitation.getNetwork()).getOwner(), user)) {
+            final UUID device = invitation.getDevice();
+
+            if (!Device.checkPermissions(device, user)) {
                 return error("no_permissions");
+            }
+
+            if (!Device.isOnline(device)) {
+                return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
             }
         }
 
