@@ -22,6 +22,10 @@ public class NetworkOwnerEndpoint {
     public static JSONObject getAll(JSON data, UUID user) {
         UUID device = data.getUUID("device");
 
+        if (!Device.isOnline(device)) {
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+        }
+
         List<Network> networks = Network.getNetworks(device);
 
         List<JSONObject> jsonNetworks = new ArrayList<>();
@@ -36,6 +40,10 @@ public class NetworkOwnerEndpoint {
     public static JSONObject invite(JSON data, UUID user) {
         UUID uuid = data.getUUID("uuid");
         UUID device = data.getUUID("device");
+
+        if (!Device.isOnline(device)) {
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+        }
 
         Network network = Network.get(uuid);
 
@@ -150,6 +158,10 @@ public class NetworkOwnerEndpoint {
             return error("no_permissions");
         }
 
+        if (!Device.isOnline(network.getOwner())) {
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+        }
+
         List<JSONObject> invitations = new ArrayList<>();
 
         for (Invitation invitation : Invitation.getInvitationsOfNetwork(uuid, true)) {
@@ -167,6 +179,10 @@ public class NetworkOwnerEndpoint {
 
         if (network == null || !Device.checkPermissions(network.getOwner(), user)) {
             return error("no_permissions");
+        }
+
+        if (!Device.isOnline(network.getOwner())) {
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
         }
 
         List<JSONObject> invitations = new ArrayList<>();

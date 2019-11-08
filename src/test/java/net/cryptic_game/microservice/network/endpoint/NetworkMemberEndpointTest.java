@@ -86,6 +86,10 @@ public class NetworkMemberEndpointTest {
 
         JSON data = new JSON(JSONBuilder.anJSON().add("device", device.toString()).build());
 
+        PowerMockito.when(Device.isOnline(Mockito.any())).thenReturn(false);
+        assertEquals(JSONBuilder.anJSON().add("error", "device_not_online").build(), NetworkMemberEndpoint.getAll(data, UUID.randomUUID()));
+        PowerMockito.when(Device.isOnline(Mockito.any())).thenReturn(true);
+
         List<Network> networkList = (List<Network>) NetworkMemberEndpoint.getAll(data, UUID.randomUUID()).get("networks");
         assertEquals(1, networkList.size());
     }

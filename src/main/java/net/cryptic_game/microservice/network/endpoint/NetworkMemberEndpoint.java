@@ -22,6 +22,10 @@ public class NetworkMemberEndpoint {
     public static JSONObject getAll(JSON data, UUID user) {
         UUID device = data.getUUID("device");
 
+        if (!Device.isOnline(device)) {
+            return error(Error.ERROR_DEVICE_NOT_ONLINE.toString());
+        }
+
         List<Network> networks = Member.getNetworks(device);
 
         List<JSONObject> jsonNetworks = new ArrayList<>();
