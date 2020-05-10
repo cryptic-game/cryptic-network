@@ -36,7 +36,8 @@ public class NetworkEndpoint {
 		if(network == null) {
 			error("network_not_found");
 		}
-
+		
+		assert network != null;
 		return network.serialize();
 	}
 
@@ -50,6 +51,7 @@ public class NetworkEndpoint {
 			jsonNetworks.add(network.serialize());
 		}
 
+		assert network != null;
 		return simple("networks", jsonNetworks);
 	}
 
