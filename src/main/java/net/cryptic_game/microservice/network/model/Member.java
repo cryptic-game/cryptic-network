@@ -1,8 +1,8 @@
 package net.cryptic_game.microservice.network.model;
 
 import net.cryptic_game.microservice.MicroService;
-import net.cryptic_game.microservice.db.Database;
 import net.cryptic_game.microservice.model.Model;
+import net.cryptic_game.microservice.sql.SqlService;
 import net.cryptic_game.microservice.utils.JSON;
 import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Session;
@@ -59,7 +59,7 @@ public class Member extends Model {
     }
 
     public static List<Network> getNetworks(UUID device) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Member> criteria = builder.createQuery(Member.class);
@@ -83,7 +83,7 @@ public class Member extends Model {
     }
 
     public static List<Member> getMembershipsOfUser(UUID user) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Member> criteria = builder.createQuery(Member.class);
@@ -100,7 +100,7 @@ public class Member extends Model {
     }
 
     public static List<Member> getMembers(UUID network) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Member> criteria = builder.createQuery(Member.class);
@@ -124,7 +124,7 @@ public class Member extends Model {
 
         Member member = new Member(uuid, device, user, network);
 
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         session.save(member);

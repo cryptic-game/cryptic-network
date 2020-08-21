@@ -1,8 +1,8 @@
 package net.cryptic_game.microservice.network.model;
 
 import net.cryptic_game.microservice.MicroService;
-import net.cryptic_game.microservice.db.Database;
 import net.cryptic_game.microservice.model.Model;
+import net.cryptic_game.microservice.sql.SqlService;
 import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -27,7 +27,7 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({MicroService.class, Database.class})
+@PrepareForTest({MicroService.class, SqlService.class})
 public class NetworkTest {
 
     private Random rand;
@@ -37,7 +37,7 @@ public class NetworkTest {
     private MicroService microService;
 
     @Mock
-    private Database database;
+    private SqlService sqlService;
 
     @Mock
     private Transaction transaction;
@@ -62,9 +62,9 @@ public class NetworkTest {
         rand = new Random();
         networks = new ArrayList<>();
 
-        PowerMockito.mockStatic(Database.class);
-        PowerMockito.when(Database.getInstance()).thenReturn(database);
-        PowerMockito.when(database.openSession()).thenReturn(session);
+        PowerMockito.mockStatic(SqlService.class);
+        PowerMockito.when(SqlService.getInstance()).thenReturn(sqlService);
+        PowerMockito.when(sqlService.openSession()).thenReturn(session);
         PowerMockito.when(session.getTransaction()).thenReturn(transaction);
 
         PowerMockito.when(session.save(Mockito.any(Network.class))).thenAnswer((InvocationOnMock invocationOnMock) -> {

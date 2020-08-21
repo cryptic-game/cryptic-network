@@ -1,8 +1,8 @@
 package net.cryptic_game.microservice.network.model;
 
 import net.cryptic_game.microservice.MicroService;
-import net.cryptic_game.microservice.db.Database;
 import net.cryptic_game.microservice.model.Model;
+import net.cryptic_game.microservice.sql.SqlService;
 import net.cryptic_game.microservice.utils.JSON;
 import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Session;
@@ -69,7 +69,7 @@ public class Network extends Model {
     }
 
     public static Network get(UUID uuid) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         Network network = session.get(Network.class, uuid);
@@ -81,7 +81,7 @@ public class Network extends Model {
     }
 
     public static List<Network> getPublicNetworks() {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Network> criteria = builder.createQuery(Network.class);
@@ -98,7 +98,7 @@ public class Network extends Model {
     }
 
     public static List<Network> getNetworksOfUser(UUID user) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Network> criteria = builder.createQuery(Network.class);
@@ -115,7 +115,7 @@ public class Network extends Model {
     }
 
     public static List<Network> getNetworks(UUID device) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Network> criteria = builder.createQuery(Network.class);
@@ -139,7 +139,7 @@ public class Network extends Model {
 
         Network network = new Network(uuid, owner, user, hidden, name);
 
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         session.save(network);
@@ -153,7 +153,7 @@ public class Network extends Model {
     }
 
     public static Network getNetworkByName(String name) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Network> criteria = builder.createQuery(Network.class);

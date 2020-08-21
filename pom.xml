@@ -5,7 +5,7 @@
 
 	<groupId>net.cryptic_game.microservice</groupId>
 	<artifactId>network</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.2.0</version>
 	<packaging>jar</packaging>
 
 	<name>cryptic-game-network</name>
@@ -42,8 +42,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.0</version>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<source>11</source>
+					<target>11</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -60,8 +60,12 @@
 
 	<repositories>
 		<repository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>bintray-jannikemmerich-cryptic</id>
+			<name>bintray</name>
+			<url>https://dl.bintray.com/jannikemmerich/cryptic</url>
 		</repository>
 	</repositories>
 
@@ -79,19 +83,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.26</version>
-		</dependency>
-		<dependency>
-			<groupId>com.github.cryptic-game</groupId>
+			<groupId>net.cryptic-game</groupId>
 			<artifactId>java-lib</artifactId>
-			<version>experimental-6da5a8b73d-1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-core</artifactId>
-			<version>5.4.4.Final</version>
+			<version>0.2.0</version>
 		</dependency>
 	</dependencies>
 </project>

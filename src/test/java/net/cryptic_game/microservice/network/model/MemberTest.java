@@ -1,8 +1,8 @@
 package net.cryptic_game.microservice.network.model;
 
 import net.cryptic_game.microservice.MicroService;
-import net.cryptic_game.microservice.db.Database;
 import net.cryptic_game.microservice.model.Model;
+import net.cryptic_game.microservice.sql.SqlService;
 import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -26,7 +26,7 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({MicroService.class, Database.class})
+@PrepareForTest({MicroService.class, SqlService.class})
 public class MemberTest {
 
     private List<Member> members;
@@ -36,7 +36,7 @@ public class MemberTest {
     private MicroService microService;
 
     @Mock
-    private Database database;
+    private SqlService database;
 
     @Mock
     private Transaction transaction;
@@ -60,8 +60,8 @@ public class MemberTest {
     public void setUp() {
         members = new ArrayList<>();
 
-        PowerMockito.mockStatic(Database.class);
-        PowerMockito.when(Database.getInstance()).thenReturn(database);
+        PowerMockito.mockStatic(SqlService.class);
+        PowerMockito.when(SqlService.getInstance()).thenReturn(database);
         PowerMockito.when(database.openSession()).thenReturn(session);
         PowerMockito.when(session.getTransaction()).thenReturn(transaction);
 

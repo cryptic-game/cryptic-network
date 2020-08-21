@@ -1,8 +1,8 @@
 package net.cryptic_game.microservice.network.model;
 
 import net.cryptic_game.microservice.MicroService;
-import net.cryptic_game.microservice.db.Database;
 import net.cryptic_game.microservice.model.Model;
+import net.cryptic_game.microservice.sql.SqlService;
 import net.cryptic_game.microservice.utils.JSON;
 import net.cryptic_game.microservice.utils.JSONBuilder;
 import org.hibernate.Session;
@@ -83,7 +83,7 @@ public class Invitation extends Model {
     }
 
     public static List<Invitation> getInvitationsOfDevice(UUID device, boolean request) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Invitation> criteria = builder.createQuery(Invitation.class);
@@ -100,7 +100,7 @@ public class Invitation extends Model {
     }
 
     public static List<Invitation> getInvitationsOfNetwork(UUID network, boolean request) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Invitation> criteria = builder.createQuery(Invitation.class);
@@ -117,7 +117,7 @@ public class Invitation extends Model {
     }
 
     public static List<Invitation> getInvitationsOfUser(UUID user) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Invitation> criteria = builder.createQuery(Invitation.class);
@@ -134,7 +134,7 @@ public class Invitation extends Model {
     }
 
     public static Invitation getInvitation(UUID uuid) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         Invitation invitation = session.get(Invitation.class, uuid);
@@ -161,7 +161,7 @@ public class Invitation extends Model {
 
         Invitation invitation = new Invitation(uuid, device, user, network, request);
 
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         session.save(invitation);
