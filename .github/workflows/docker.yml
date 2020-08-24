@@ -32,7 +32,7 @@ jobs:
           if [[ ${GITHUB_REF#refs/heads/} == master ]]; then
             VERSION=latest
           elif [[ ${GITHUB_REF#refs/heads/} == experimental ]]; then
-            VERSION=edge
+            VERSION=experimental
           fi
           IMAGE_NAME=crypticcp/cryptic-network
           TAGS="--tag $IMAGE_NAME:${VERSION}"
