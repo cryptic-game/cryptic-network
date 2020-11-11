@@ -1,95 +1,137 @@
 package net.cryptic_game.microservice.network.model;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
+import net.cryptic_game.microservice.MicroService;
+import net.cryptic_game.microservice.model.Model;
+import net.cryptic_game.microservice.sql.SqlService;
+import net.cryptic_game.microservice.utils.JSON;
+import net.cryptic_game.microservice.utils.JSONBuilder;
+import org.hibernate.Session;
+import org.hibernate.annotations.Type;
 import org.json.simple.JSONObject;
 
-import net.cryptic_game.microservice.model.Model;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
+@Entity
+@Table(name = "network_member")
 public class Member extends Model {
 
-	private UUID device;
-	private UUID network;
+    @Type(type = "uuid-char")
+    private UUID device;
+    @Type(type = "uuid-char")
+    private UUID user;
+    @Type(type = "uuid-char")
+    private UUID network;
 
-	private static String tablename = "network_member";
+    public Member(UUID uuid, UUID device, UUID user, UUID network) {
+        this.uuid = uuid;
+        this.device = device;
+        this.user = user;
+        this.network = network;
+    }
 
-	static {
-		db.update("CREATE TABLE IF NOT EXISTS `" + tablename
-				+ "` (uuid VARCHAR(36) PRIMARY KEY, device VARCHAR(36), network VARCHAR(36));");
-	}
+    public Member() {}
 
-	private Member(UUID uuid, UUID device, UUID network) {
-		super(tablename);
+    public UUID getDevice() {
+        return device;
+    }
 
-		this.uuid = uuid;
-		this.device = device;
-		this.network = network;
-	}
+    public UUID getUser() {
+        return user;
+    }
 
-	public UUID getDevice() {
-		return device;
-	}
+    public UUID getNetwork() {
+        return network;
+    }
 
-	public UUID getNetwork() {
-		return network;
-	}
+    public JSONObject serialize() {
+        return JSONBuilder.anJSON()
+                .add("uuid", getUUID().toString())
+                .add("network", getNetwork().toString())
+                .add("device", getDevice().toString()).build();
+    }
 
-	public JSONObject serialize() {
-		Map<String, Object> jsonMap = new HashMap<>();
+    public static List<Network> getNetworks(UUID device) {
+        Session session = SqlService.getInstance().openSession();
 
-		jsonMap.put("uuid", getUUID().toString());
-		jsonMap.put("network", getNetwork().toString());
-		jsonMap.put("device", getDevice().toString());
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Member> criteria = builder.createQuery(Member.class);
+        Root<Member> from = criteria.from(Member.class);
 
-		return new JSONObject(jsonMap);
-	}
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("device"), device));
+        TypedQuery<Member> typed = session.createQuery(criteria);
 
-	public static List<Network> getNetworks(UUID device) {
-		List<Network> list = new ArrayList<>();
+        List<Member> results = typed.getResultList();
+        List<Network> networks = new ArrayList<>();
+        for(Member member : results) {
+            Network network = Network.get(member.getNetwork());
+            if(network != null) {
+                networks.add(network);
+            }
+        }
 
-		ResultSet rs = db.getResult("SELECT `network` FROM `" + tablename + "` WHERE `device`=?", device.toString());
+        session.close();
+        return networks;
+    }
 
-		try {
-			while (rs.next()) {
-				list.add(Network.get(UUID.fromString(rs.getString("network"))));
-			}
-		} catch (SQLException e) {
-		}
+    public static List<Member> getMembershipsOfUser(UUID user) {
+        Session session = SqlService.getInstance().openSession();
 
-		return list;
-	}
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Member> criteria = builder.createQuery(Member.class);
+        Root<Member> from = criteria.from(Member.class);
 
-	public static List<Member> getMembers(UUID network) {
-		List<Member> list = new ArrayList<>();
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("user"), user));
+        TypedQuery<Member> typed = session.createQuery(criteria);
 
-		ResultSet rs = db.getResult("SELECT `uuid`, `device` FROM `" + tablename + "` WHERE `network`=?",
-				network.toString());
+        List<Member> results = typed.getResultList();
 
-		try {
-			while (rs.next()) {
-				list.add(new Member(UUID.fromString(rs.getString("uuid")), UUID.fromString(rs.getString("device")),
-						network));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+        session.close();
+        return results;
+    }
 
-		return list;
-	}
+    public static List<Member> getMembers(UUID network) {
+        Session session = SqlService.getInstance().openSession();
 
-	public static Member create(UUID device, UUID network) {
-		UUID uuid = UUID.randomUUID();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Member> criteria = builder.createQuery(Member.class);
+        Root<Member> from = criteria.from(Member.class);
 
-		db.update("INSERT INTO `" + tablename + "` (`uuid`, `device`, `network`) VALUES (?, ?, ?)", uuid.toString(),
-				device.toString(), network.toString());
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("network"), network));
+        TypedQuery<Member> typed = session.createQuery(criteria);
 
-		return new Member(uuid, device, network);
-	}
+        List<Member> results = typed.getResultList();
 
+        session.close();
+        return results;
+    }
+
+    public static Member create(UUID device, UUID network) {
+        UUID uuid = UUID.randomUUID();
+
+        JSONObject response = MicroService.getInstance().contactMicroService("device", new String[]{"owner"}, JSONBuilder.anJSON().add("device_uuid", device.toString()).build());
+        UUID user = new JSON(response).getUUID("owner");
+
+        Member member = new Member(uuid, device, user, network);
+
+        Session session = SqlService.getInstance().openSession();
+        session.beginTransaction();
+
+        session.save(member);
+
+        session.getTransaction().commit();
+        session.close();
+
+        return member;
+    }
 }

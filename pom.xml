@@ -5,7 +5,7 @@
 
 	<groupId>net.cryptic_game.microservice</groupId>
 	<artifactId>network</artifactId>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>0.2.0</version>
 	<packaging>jar</packaging>
 
 	<name>cryptic-game-network</name>
@@ -16,7 +16,7 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.1.0</version>
+				<version>3.3.0</version>
 				<configuration>
 					<archive>
 						<manifest>
@@ -40,11 +40,16 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
+				<version>3.8.1</version>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<source>11</source>
+					<target>11</target>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.2</version>
 			</plugin>
 		</plugins>
 	</build>
@@ -55,21 +60,32 @@
 
 	<repositories>
 		<repository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>bintray-jannikemmerich-cryptic</id>
+			<name>bintray</name>
+			<url>https://dl.bintray.com/jannikemmerich/cryptic</url>
 		</repository>
 	</repositories>
 
 	<dependencies>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.26</version>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>2.0.2</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.github.cryptic-game</groupId>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito2</artifactId>
+			<version>2.0.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.cryptic-game</groupId>
 			<artifactId>java-lib</artifactId>
-			<version>-a517b1d24b-1</version>
+			<version>0.2.0</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -1,138 +1,174 @@
 package net.cryptic_game.microservice.network.model;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
+import net.cryptic_game.microservice.MicroService;
+import net.cryptic_game.microservice.model.Model;
+import net.cryptic_game.microservice.sql.SqlService;
+import net.cryptic_game.microservice.utils.JSON;
+import net.cryptic_game.microservice.utils.JSONBuilder;
+import org.hibernate.Session;
+import org.hibernate.annotations.Type;
 import org.json.simple.JSONObject;
 
-import net.cryptic_game.microservice.model.Model;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import java.util.List;
+import java.util.UUID;
 
+@Entity
+@Table(name = "network_invitation")
 public class Invitation extends Model {
 
-	private static String tablename = "invitation";
+    @Type(type = "uuid-char")
+    private UUID device;
+    @Type(type = "uuid-char")
+    private UUID user;
+    @Type(type = "uuid-char")
+    private UUID network;
+    private boolean request;
 
-	static {
-		db.update("CREATE TABLE IF NOT EXISTS `" + tablename
-				+ "` (uuid VARCHAR(36) PRIMARY KEY, device VARCHAR(36), network VARCHAR(36), request BOOLEAN);");
-	}
+    public Invitation(UUID uuid, UUID device, UUID user, UUID network, boolean request) {
+        this.uuid = uuid;
+        this.device = device;
+        this.user = user;
+        this.network = network;
+        this.request = request;
+    }
 
-	private UUID device;
-	private UUID network;
-	private boolean request;
+    public Invitation() {}
 
-	private Invitation(UUID uuid, UUID device, UUID network, boolean request) {
-		super(tablename);
+    public UUID getDevice() {
+        return device;
+    }
 
-		this.uuid = uuid;
-		this.device = device;
-		this.network = network;
-		this.request = request;
-	}
+    public UUID getUser() {
+        return user;
+    }
 
-	public UUID getDevice() {
-		return device;
-	}
+    public UUID getNetwork() {
+        return network;
+    }
 
-	public UUID getNetwork() {
-		return network;
-	}
+    public boolean isRequest() {
+        return request;
+    }
 
-	public boolean isRequest() {
-		return request;
-	}
+    public void deny() {
+        this.delete();
+    }
 
-	public void deny() {
-		this.delete();
-	}
+    public void revoke() {
+        this.delete();
+    }
 
-	public void accept() {
-		Network network = Network.get(this.network);
+    public void accept() {
+        Network network = Network.get(this.network);
 
-		if (network != null) {
-			network.addMemeber(this.device);
-		}
+        if (network != null) {
+            network.addMember(this.device);
+        }
 
-		this.delete();
-	}
+        this.delete();
+    }
 
-	public JSONObject serialize() {
-		Map<String, Object> jsonMap = new HashMap<String, Object>();
+    public JSONObject serialize() {
+        return JSONBuilder.anJSON()
+                .add("uuid", uuid.toString())
+                .add("network", network.toString())
+                .add("device", device.toString())
+                .add("request", request).build();
+    }
 
-		jsonMap.put("uuid", getUUID().toString());
-		jsonMap.put("network", getNetwork().toString());
-		jsonMap.put("device", getDevice().toString());
-		jsonMap.put("request", isRequest());
+    public static List<Invitation> getInvitationsOfDevice(UUID device, boolean request) {
+        Session session = SqlService.getInstance().openSession();
 
-		return new JSONObject(jsonMap);
-	}
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Invitation> criteria = builder.createQuery(Invitation.class);
+        Root<Invitation> from = criteria.from(Invitation.class);
 
-	public static List<Invitation> getInvitationsOfDevice(UUID device, boolean request) {
-		List<Invitation> list = new ArrayList<>();
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("device"), device), builder.equal(from.get("request"), request));
+        TypedQuery<Invitation> typed = session.createQuery(criteria);
 
-		ResultSet rs = db.getResult("SELECT `uuid`, `network` FROM `" + tablename + "` WHERE `device`=? AND `request`=?",
-				device.toString(), request);
+        List<Invitation> results = typed.getResultList();
 
-		try {
-			while (rs.next()) {
-				list.add(new Invitation(UUID.fromString(rs.getString("uuid")), device,
-						UUID.fromString(rs.getString("network")), request));
-			}
-		} catch (SQLException e) {
-		}
+        session.close();
+        return results;
+    }
 
-		return list;
-	}
+    public static List<Invitation> getInvitationsOfNetwork(UUID network, boolean request) {
+        Session session = SqlService.getInstance().openSession();
 
-	public static List<Invitation> getInvitationsOfNetwork(UUID network, boolean request) {
-		List<Invitation> list = new ArrayList<>();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Invitation> criteria = builder.createQuery(Invitation.class);
+        Root<Invitation> from = criteria.from(Invitation.class);
 
-		ResultSet rs = db.getResult("SELECT `uuid`, `device` FROM `" + tablename + "` WHERE `network`=? AND `request`=?",
-				network.toString(), request);
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("network"), network), builder.equal(from.get("request"), request));
+        TypedQuery<Invitation> typed = session.createQuery(criteria);
 
-		try {
-			while (rs.next()) {
-				list.add(new Invitation(UUID.fromString(rs.getString("uuid")), UUID.fromString(rs.getString("device")),
-						network, request));
-			}
-		} catch (SQLException e) {
-		}
+        List<Invitation> results = typed.getResultList();
 
-		return list;
-	}
-	public static Invitation getInvitation(UUID uuid) {
-		ResultSet rs = db.getResult("SELECT `device`, `network`, `request` FROM `" + tablename + "` WHERE `uuid`=?",
-				uuid.toString());
+        session.close();
+        return results;
+    }
 
-		try {
-			if (rs.next()) {
-				return new Invitation(uuid, UUID.fromString(rs.getString("device")),
-						UUID.fromString(rs.getString("network")), rs.getBoolean("request"));
-			}
-		} catch (SQLException e) {
-		}
+    public static List<Invitation> getInvitationsOfUser(UUID user) {
+        Session session = SqlService.getInstance().openSession();
 
-		return null;
-	}
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Invitation> criteria = builder.createQuery(Invitation.class);
+        Root<Invitation> from = criteria.from(Invitation.class);
 
-	public static Invitation request(UUID device, UUID network) {
-		return create(device, network, true);
-	}
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("user"), user));
+        TypedQuery<Invitation> typed = session.createQuery(criteria);
 
-	public static Invitation invite(UUID device, UUID network) {
-		return create(device, network, false);
-	}
+        List<Invitation> results = typed.getResultList();
 
-	private static Invitation create(UUID device, UUID network, boolean request) {
-		UUID uuid = UUID.randomUUID();
+        session.close();
+        return results;
+    }
 
-		db.update("INSERT INTO `" + tablename + "` (`uuid`, `device`, `network`, `request`) VALUES (?, ?, ?, ?)",
-				uuid.toString(), device.toString(), network.toString(), request);
+    public static Invitation getInvitation(UUID uuid) {
+        Session session = SqlService.getInstance().openSession();
+        session.beginTransaction();
 
-		return new Invitation(uuid, device, network, request);
-	}
+        Invitation invitation = session.get(Invitation.class, uuid);
+
+        session.getTransaction().commit();
+        session.close();
+
+        return invitation;
+    }
+
+    public static Invitation request(UUID device, UUID network) {
+        return create(device, network, true);
+    }
+
+    public static Invitation invite(UUID device, UUID network) {
+        return create(device, network, false);
+    }
+
+    protected static Invitation create(UUID device, UUID network, boolean request) {
+        UUID uuid = UUID.randomUUID();
+
+        JSONObject response = MicroService.getInstance().contactMicroService("device", new String[]{"owner"}, JSONBuilder.anJSON().add("device_uuid", device.toString()).build());
+        UUID user = new JSON(response).getUUID("owner");
+
+        Invitation invitation = new Invitation(uuid, device, user, network, request);
+
+        Session session = SqlService.getInstance().openSession();
+        session.beginTransaction();
+
+        session.save(invitation);
+
+        session.getTransaction().commit();
+        session.close();
+
+        return invitation;
+    }
 }
