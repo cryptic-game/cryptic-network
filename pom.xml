@@ -5,7 +5,7 @@
 
 	<groupId>net.cryptic_game.microservice</groupId>
 	<artifactId>network</artifactId>
-	<version>0.2.0</version>
+	<version>0.2.1</version>
 	<packaging>jar</packaging>
 
 	<name>cryptic-game-network</name>

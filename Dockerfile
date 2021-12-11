@@ -13,6 +13,6 @@ RUN set -o errexit -o nounset \
     && mkdir -p ${DATA_DIR} \
 
 WORKDIR ${DATA_DIR}
-COPY --from=builder /app/target/network-0.2.0-jar-with-dependencies.jar ${CRYPTIC_HOME}/network.jar
+COPY --from=builder /app/target/network-0.2.1-jar-with-dependencies.jar ${CRYPTIC_HOME}/network.jar
 
 ENTRYPOINT ["java", "-jar", "/opt/cryptic/network.jar"]
